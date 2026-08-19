@@ -1,0 +1,6 @@
+# sharp backs next/image, which the landing page uses for its product shots (landing-spec §6).
+# unrs-resolver unpacks the native binding the Next ESLint resolver needs.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
