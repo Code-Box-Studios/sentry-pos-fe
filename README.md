@@ -35,4 +35,30 @@ pnpm dev
 ```
 
 Sign in with `maria@kapediaria.ph` / `sentry-demo`; the refund PIN is `123456`. Everything is backed
-by an in-browser mock until `sentry-pos-be` exists.
+by an in-browser mock until `sentry-pos-be` exists — the POS app needs no database and no Docker.
+
+## Local database
+
+Where the database is *hosted* is deliberately undecided. Everything that talks to it — Payload, and
+later Prisma and the Nest API — takes a plain connection string, so moving to Supabase, Neon or RDS
+at deploy time is an environment change and a dump/restore.
+
+```bash
+docker compose up -d      # Postgres 17 on localhost:5433
+docker compose down       # stop; add -v to wipe the volume and start clean
+```
+
+The host port is **5433**, not 5432, to stay out of the way of other projects' containers.
+
+| Role | Connection string | Reaches |
+| --- | --- | --- |
+| `sentry` | `postgresql://sentry:sentry_dev_password@localhost:5433/sentry` | everything |
+| `cms_user` | `postgresql://cms_user:cms_dev_password@localhost:5433/sentry` | the `cms` schema only |
+
+These credentials are development-only and intentionally committed; production values come from the
+host's secret store.
+
+The split mirrors the production topology in [`landing-spec.md`](landing-spec.md) §5: the marketing
+CMS gets its own schema and its own login, so a compromised CMS credential reaches page copy and
+nothing else. `cms_user` is denied `CREATE` in `public`, where tenant data will live — see
+[`docker/postgres-init/01-cms-schema.sql`](docker/postgres-init/01-cms-schema.sql).
