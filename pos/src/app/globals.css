@@ -1,0 +1,61 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* The terminal is light-only: gate `dark:` utilities behind a class we never set. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: var(--font-figtree), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-scp), "SF Mono", Menlo, Consolas, monospace;
+
+  /* Sentry design-spec tokens */
+  --color-ink: #001e2b;
+  --color-slate: #3d4f58;
+  --color-steel: #5c6c75;
+  --color-stone: #889397;
+  --color-mist: #b8c4c2;
+  --color-brand-green: #00ed64;
+  --color-green-dark: #00684a;
+  --color-green-pressed: #004d37;
+  --color-green-soft: #e3fcf7;
+  --color-hairline: #e8edeb;
+  --color-hairline-strong: #c1c7c6;
+  --color-hairline-soft: #f1f4f3;
+  --color-surface: #f9fbfa;
+  --color-page: #edf1f0;
+  --color-warn-bg: #ffec9e;
+  --color-warn-text: #944f01;
+  --color-danger: #b1371f;
+  --color-danger-bg: #fbe9e9;
+
+  /* shadcn semantic slots mapped to Sentry values */
+  --color-background: #f9fbfa;
+  --color-foreground: #001e2b;
+  --color-card: #ffffff;
+  --color-card-foreground: #001e2b;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #001e2b;
+  --color-primary: #00ed64;
+  --color-primary-foreground: #001e2b;
+  --color-secondary: #e3fcf7;
+  --color-secondary-foreground: #00684a;
+  --color-muted: #f1f4f3;
+  --color-muted-foreground: #5c6c75;
+  --color-accent: #e8edeb;
+  --color-accent-foreground: #001e2b;
+  --color-destructive: #b1371f;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #e8edeb;
+  --color-input: #c1c7c6;
+  --color-ring: #00684a;
+
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+
+@media print {
+  body > * { display: none !important; }
+  #print-root { display: block !important; }
+}
+
+#print-root { display: none; }
