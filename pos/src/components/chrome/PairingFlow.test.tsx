@@ -40,7 +40,9 @@ test("owner signs in, picks branch, names the terminal, and pairs", async () => 
   await vi.waitFor(() => expect(usePairingStore.getState().status).toBe("paired"));
   expect(usePairingStore.getState().terminalCode).toBe("T1");
   expect(usePairingStore.getState().branch?.code).toBe("MKT");
-  expect(replace).toHaveBeenCalledWith("/sale");
+  // Pairing records the device and stops. Routing belongs to TerminalGate, which knows whether a
+  // shift is open; this form used to send everyone to /sale and have them bounced out again.
+  expect(replace).not.toHaveBeenCalled();
 });
 
 test("a wrong password surfaces inline and leaves the terminal unpaired", async () => {

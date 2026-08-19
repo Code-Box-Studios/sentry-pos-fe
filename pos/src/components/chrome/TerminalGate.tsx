@@ -39,12 +39,15 @@ export function TerminalGate({ children }: { children: React.ReactNode }) {
       return;
     }
     clearedCartFor.current = false;
-    if (pathname === "/pair" || pathname === "/") {
-      router.replace("/sale");
-      return;
-    }
     // Wait for the first getCurrentShift before bouncing anyone around.
     if (!shiftHydrated) return;
+    if (pathname === "/pair" || pathname === "/") {
+      // Land where the terminal is actually going. Sending everyone to /sale and bouncing whoever
+      // has no open shift straight back out costs a second route transition, and on a freshly
+      // paired device it means staring at a catalogue you cannot sell from yet.
+      router.replace(shift ? "/sale" : "/shift-open");
+      return;
+    }
     if (!shift && NEEDS_SHIFT.includes(pathname)) router.replace("/shift-open");
     else if (shift && pathname === "/shift-open") router.replace("/sale");
   }, [hydrated, status, pathname, router, shift, shiftHydrated]);

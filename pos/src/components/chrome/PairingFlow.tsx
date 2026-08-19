@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { getApi } from "@/api";
 import { ApiError } from "@/api/errors";
 import type { BusinessSummary, OwnerSession } from "@/api/types";
@@ -11,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCatalogStore } from "@/state/catalog";
 import { usePairingStore } from "@/state/pairing";
 
 function message(e: unknown, fallback: string): string {
@@ -33,9 +31,7 @@ function DoneRow({ label, value }: { label: string; value: string }) {
 
 /** First launch: owner sign-in binds this device to exactly one branch (pos-spec §3). */
 export function PairingFlow() {
-  const router = useRouter();
   const pair = usePairingStore((s) => s.pair);
-  const refreshCatalog = useCatalogStore((s) => s.refresh);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -88,12 +84,16 @@ export function PairingFlow() {
     setPairError(null);
     try {
       const result = await getApi().pairTerminal(session, businessId, branchId, terminalName);
+      // TerminalGate takes over here: it pulls the catalogue and the current shift, then routes to
+      // whichever screen this terminal actually needs. Sending it to /sale from here meant a newly
+      // paired device — which by definition has no open shift — loaded the whole catalogue only to
+      // be bounced to /shift-open a moment later.
+      //
+      // `busy` deliberately stays set on success. This form is about to be replaced; re-enabling
+      // Pair terminal for those few frames only invites a second press.
       pair(result);
-      await refreshCatalog();
-      router.replace("/sale");
     } catch (err) {
       setPairError(message(err, "Could not pair this terminal"));
-    } finally {
       setBusy(false);
     }
   }
