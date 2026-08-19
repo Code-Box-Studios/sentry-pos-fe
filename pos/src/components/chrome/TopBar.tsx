@@ -23,9 +23,9 @@ export function TopBar({ active }: { active: TopBarTab }) {
   const terminalCode = usePairingStore((s) => s.terminalCode);
 
   return (
-    <header className="flex h-[52px] flex-none items-center gap-5 border-b border-hairline bg-white px-5">
+    <header className="flex h-[52px] flex-none items-center gap-3 border-b border-hairline bg-white px-3 sm:gap-5 sm:px-5">
       <Image src="/brand/sentry-mark.svg" alt="Sentry" width={24} height={24} className="size-6" priority />
-      <nav className="flex gap-1">
+      <nav className="flex min-w-0 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {NAV.map((item) => (
           <Button
             key={item.tab}
@@ -38,9 +38,9 @@ export function TopBar({ active }: { active: TopBarTab }) {
           </Button>
         ))}
       </nav>
-      <div className="flex-1" />
+      <div className="hidden flex-1 sm:block" />
       {business?.isDemo && <Badge variant="warn" className="tracking-widest">DEMO</Badge>}
-      <div className="font-mono text-[13px] font-semibold text-slate">
+      <div className="hidden font-mono text-[13px] font-semibold text-slate sm:block">
         {branch?.code ?? "—"} · {terminalCode ?? "—"}
       </div>
       <StatusChips />

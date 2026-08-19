@@ -15,7 +15,7 @@ function Chip({ tone, label }: { tone: "green" | "amber"; label: string }) {
       )}
     >
       <div className={cn("size-2 rounded-full", tone === "green" ? "bg-brand-green" : "bg-warn-text")} />
-      <span>{label}</span>
+      <span className="hidden sm:inline">{label}</span>
     </div>
   );
 }

@@ -118,11 +118,11 @@ export default function PaymentPage() {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1">
-        <section className="flex flex-1 flex-col items-center justify-center gap-7 overflow-y-auto p-6">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
+        <section className="flex flex-1 flex-col items-center justify-center gap-7 p-6 md:overflow-y-auto">
           <div className="flex flex-col items-center gap-1">
             <div className="text-sm font-semibold tracking-widest text-steel">AMOUNT DUE</div>
-            <div aria-label="Amount due" className="font-mono text-[64px] leading-none font-bold tracking-tight text-ink">
+            <div aria-label="Amount due" className="font-mono text-[40px] leading-none font-bold tracking-tight text-ink md:text-[64px]">
               {formatPeso(totals.totalC)}
             </div>
             <div className="text-[13px] text-stone">
@@ -152,9 +152,7 @@ export default function PaymentPage() {
           )}
         </section>
 
-        <div className="hidden md:block">
-          <OrderSummaryRail cart={cart} totals={totals} />
-        </div>
+        <OrderSummaryRail cart={cart} totals={totals} />
       </div>
     </main>
   );

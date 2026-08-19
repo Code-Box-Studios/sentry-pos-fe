@@ -49,13 +49,13 @@ export function SaleRow({ sale, onSelect }: { sale: SaleSummary; onSelect(): voi
     <button
       type="button"
       onClick={onSelect}
-      className="flex items-center gap-4 rounded-lg border border-hairline bg-white px-5 py-3.5 text-left active:bg-hairline-soft"
+      className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-hairline bg-white px-5 py-3.5 text-left active:bg-hairline-soft"
     >
       <span className={cn("w-[150px] font-mono text-sm font-semibold", voided ? "text-stone" : "text-ink")}>
         {sale.receiptNo}
       </span>
       <span className="w-[70px] text-sm text-steel">{formatManilaTime(sale.createdAt)}</span>
-      <span className="flex-1 text-sm text-slate">{saleDescription(sale)}</span>
+      <span className="order-last w-full text-sm text-slate sm:order-none sm:w-auto sm:flex-1">{saleDescription(sale)}</span>
       <Badge variant={status.variant}>{status.label}</Badge>
       <span
         className={cn(
