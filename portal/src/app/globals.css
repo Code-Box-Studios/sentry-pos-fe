@@ -5,20 +5,31 @@
 
 @theme inline {
   --font-sans: var(--font-figtree), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-scp), "SF Mono", Menlo, Consolas, monospace;
 
-  /* design-spec.md names these tokens; the concrete values come from design/pos-terminal.dc.html,
-     the one rendered artifact in the repo, so the terminal and the marketing site cannot drift. */
+  /* design-spec.md names these tokens; the concrete values come from the rendered design artifacts
+     in the repo — design/pos-terminal.dc.html and design/landing.dc.html — so the terminal and the
+     marketing site cannot drift. */
 
   /* Brand */
   --color-brand-green: #00ed64;
+  --color-brand-green-hover: #2cf57f;
+  --color-brand-green-mid: #00a35c;
   --color-brand-green-dark: #00684a;
   --color-brand-green-pressed: #004d37;
   --color-brand-green-soft: #e3fcf7;
   --color-brand-teal-deep: #001e2b;
   --color-brand-teal: #023430;
 
+  /* Category accent — used only on the feature-trio glyph tiles, per design-spec §"Colour use". */
+  --color-accent-purple: #6e3cbe;
+  --color-accent-purple-soft: #f3e9fc;
+  --color-accent-orange: #b35c00;
+  --color-accent-orange-soft: #fdf0e4;
+
   /* Surface */
   --color-canvas: #ffffff;
+  --color-canvas-dark: #0a2a38;
   --color-surface: #f9fbfa;
   --color-surface-soft: #edf1f0;
   --color-surface-feature: #e3fcf7;
@@ -34,6 +45,20 @@
   --color-stone: #889397;
   --color-mist: #b8c4c2;
 
+  /* Status */
+  --color-warn-bg: #ffec9e;
+  --color-warn-text: #944f01;
+  --color-danger: #b1371f;
+  --color-danger-bg: #fbe9e9;
+
+  /* Heatmap ramp — the calendar and bar charts in the product mockups read cold-to-hot along this
+     scale. Five steps plus the brand green as the peak. */
+  --color-heat-1: #dcf5ea;
+  --color-heat-2: #c4e8db;
+  --color-heat-3: #7bdbaa;
+  --color-heat-4: #4fcb8e;
+  --color-heat-5: #00a35c;
+
   --radius-lg: 12px;
   --radius-xl: 16px;
 }
@@ -44,20 +69,224 @@
   color: #ffffff;
 }
 @utility text-on-dark-muted {
-  color: rgb(255 255 255 / 0.64);
+  color: rgb(255 255 255 / 0.72);
 }
 @utility text-on-dark-quiet {
-  color: rgb(255 255 255 / 0.48);
+  color: rgb(255 255 255 / 0.56);
+}
+@utility text-on-dark-faint {
+  color: rgb(255 255 255 / 0.4);
 }
 @utility border-hairline-dark {
   border-color: rgb(255 255 255 / 0.24);
 }
 
-html {
-  scroll-behavior: smooth;
+/* ---------------------------------------------------------------------------------------------
+   Motion. Every animation below is decorative — the blanket reduced-motion guard at the bottom of
+   this file neutralises all of them, and Reveal skips its own hide step when the query matches.
+   --------------------------------------------------------------------------------------------- */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes floatY {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes pulseDot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(0 237 100 / 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 9px rgb(0 237 100 / 0);
+  }
+}
+@keyframes growBar {
+  from {
+    transform: scaleY(0.05);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(60px, -40px) scale(1.15);
+  }
+}
+@keyframes drift2 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-50px, 30px) scale(1.1);
+  }
+}
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(-5deg);
+  }
+}
+@keyframes nudgeX {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(7px);
+  }
+}
+@keyframes shimmer {
+  from {
+    transform: translateX(-160%);
+  }
+  to {
+    transform: translateX(320%);
+  }
+}
+@keyframes blinkSoft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(0 237 100 / 0.35);
+  }
+  50% {
+    box-shadow: 0 0 26px 5px rgb(0 237 100 / 0.22);
+  }
 }
 
-body {
-  background: var(--color-canvas);
-  color: var(--color-ink);
+/* Named so a component can say what the motion *is* rather than restating the timing. Anything
+   needing a per-instance offset sets `animation-delay` inline on top of these. */
+@utility anim-fade-up {
+  animation: fadeUp 0.7s ease both;
+}
+@utility anim-rise {
+  animation: fadeUp 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@utility anim-float {
+  animation: floatY 8s ease-in-out infinite;
+}
+@utility anim-pulse-dot {
+  animation: pulseDot 2.4s ease-out infinite;
+}
+@utility anim-grow-bar {
+  animation: growBar 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  transform-origin: bottom;
+}
+@utility anim-marquee {
+  animation: marquee 30s linear infinite;
+}
+@utility anim-drift {
+  animation: drift 16s ease-in-out infinite;
+}
+@utility anim-drift2 {
+  animation: drift2 20s ease-in-out infinite;
+}
+@utility anim-bob {
+  animation: bob 4s ease-in-out infinite;
+}
+@utility anim-nudge-x {
+  animation: nudgeX 1.6s ease-in-out infinite;
+}
+@utility anim-shimmer {
+  animation: shimmer 3.2s ease-in-out infinite;
+}
+@utility anim-blink-soft {
+  animation: blinkSoft 3s ease-in-out infinite;
+}
+@utility anim-glow-pulse {
+  animation: glowPulse 3.2s ease-in-out infinite;
+}
+
+/* The scroll-reveal resting state. It ships in the HTML so there is no flash of un-hidden content;
+   Reveal clears it once the element crosses into view, and the <noscript> block in the layout
+   restores everything for readers without JS. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+[data-reveal="shown"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* These belong in `base`, not unlayered: unlayered CSS outranks every cascade layer regardless of
+   specificity, so an unlayered `a { color }` would quietly beat `text-white` on the nav and footer
+   links. */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+  }
+
+  /* The default only has to cover links that carry no colour of their own — inline prose links. */
+  a {
+    color: var(--color-brand-green-dark);
+    text-decoration: none;
+  }
+  a:hover {
+    color: var(--color-brand-green-pressed);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
 }

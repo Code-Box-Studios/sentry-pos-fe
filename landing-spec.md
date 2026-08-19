@@ -6,12 +6,39 @@ One public page. Its job is credibility after a pitch, a Sign-in door for existi
 
 ## 1. Page Structure (top to bottom)
 
-1. **Nav** — sticky white bar: Sentry wordmark left; right, a single green pill **Sign in** (links to `app.` login). Nothing else; a one-page site needs no menu.
-2. **Hero** (`hero-band-dark`) — H1 is the tagline: *"Your business, always in sight."* One-sentence sub: what Sentry is, for whom (multi-branch POS with profit analytics for Philippine businesses). CTAs: green pill **Sign in**, outlined-on-dark **Request access** (mailto to the support address). Below the CTAs, a product-shot card in the mockup-card slot — the portal dashboard screenshot where MongoDB would show a terminal.
-3. **Feature trio** — three `card-base` cards, 3-up desktop collapsing per the design spec: **The counter** (fast grid-and-barcode sales, receipts, shifts and Z-reports) · **The numbers** (profit, not just sales — daily email, calendar heatmap, leaks) · **The record** (every action by every user, logged completely). Icons from the design system's category-tag palette, used sparingly.
-4. **Detail band** — one two-column section: a second screenshot beside four short bullets (multi-branch with transfers, inventory with expiry tracking, SC/PWD-compliant discounts, remote terminal control).
-5. **CTA banner** (`cta-banner-dark`) — one line and the Request-access pill.
-6. **Footer** (dark teal) — support email, **Terms of Service**, **Privacy Policy**, © Code Box Studios.
+Rendered in [`design/landing.dc.html`](design/landing.dc.html), which is where the concrete
+measurements, colours and motion live.
+
+1. **Nav** — fixed, transparent while it rides the hero band, turning white with a hairline and a
+   soft shadow once the page scrolls past 24px. Sentry mark and wordmark left; anchor links to the
+   sections below; a green pill **Sign in** (links to `app.` login) right. The links collapse on
+   narrow screens, leaving mark and pill.
+2. **Hero** (`hero-band-dark`) — a status pill above the H1 ("Now onboarding pilot stores"), then
+   the tagline: *"Your business, always in sight."* One-sentence sub: what Sentry is, for whom.
+   CTAs: green pill **Sign in**, outlined-on-dark **Request access** (mailto to the contact
+   address). Below them, the portal dashboard mockup with two alert cards floating off its corners,
+   and under that a slow marquee of sample activity-log lines.
+3. **Feature trio** — three `card-base` cards, 3-up desktop collapsing per the design spec: **Built
+   for the counter** · **Profit, not just sales** · **Everything on the record**. One icon each, on
+   a tinted tile drawn from the design system's category-tag palette, used sparingly.
+4. **At the counter** (`#counter`) — two columns: an eyebrow, heading and six ✓ bullets beside a
+   mockup of the terminal mid-sale.
+5. **The numbers** (`#numbers`) — the mirror of §4, mockup first: the month's VAT summary and the
+   daily-summary email, beside four ✓ bullets.
+6. **Every branch** (`#branches`) — a centred heading over four cards, each pairing one ✓ line with
+   a small illustration: stock transfer, expiring batches, stock-take, terminal pairing.
+7. **The product** (`#product`) — a deep-teal card: phone, tablet and portal mockups overlapped and
+   captioned, making the one-design-language argument. Below it, **Also in the box** — six short
+   cards for the claims that do not need a picture.
+8. **CTA banner** (`cta-banner-dark`) — one line, the Request-access pill, and the three contact
+   routes (email, website, Facebook).
+9. **Footer** (dark teal) — Sentry mark, contact email, Website, Facebook, **Terms of Service**,
+   **Privacy Policy**, © Code Box Studios.
+
+Motion is decorative throughout and every piece of it is disabled under
+`prefers-reduced-motion: reduce`. Sections fade up as they enter view; the reveal's resting state
+ships in the HTML, so a reader without JavaScript gets a `<noscript>` override rather than a blank
+page.
 
 ## 2. Copy Rules
 
@@ -30,15 +57,27 @@ Every editable string on the page lives in **one typed object** — nothing hard
 ```ts
 LandingContent {
   meta:     { title, description }
-  hero:     { headline, sub, primaryCta, secondaryCta, screenshot }
-  features: { icon, title, body }[3]
-  detail:   { screenshot, bullets[4] }
+  nav:      { label, href }[]
+  hero:     { badge, headline, sub, primaryCta, secondaryCta, ticker: { text }[] }
+  features: { icon, tone, title, body }[3]
+  counter:  { eyebrow, heading, bullets: { text }[] }
+  numbers:  { eyebrow, heading, bullets: { text }[] }
+  branches: { heading, cards: { mockup, text }[4] }
+  product:  { eyebrow, heading, sub, captions: { text }[3] }
+  extras:   { heading, cards: { title, body }[] }
   banner:   { line, cta }
-  footer:   { supportEmail, links }
+  contact:  { email, websiteUrl, websiteLabel, facebookUrl, facebookLabel }
+  footer:   { links: { label, href }[], copyright }
 }
 ```
 
-This shape is the contract: components render it, and it works identically as a repo file or a CMS collection.
+This shape is the contract: components render it, and it works identically as a repo file or a CMS
+collection.
+
+What is deliberately **not** in it: the product mockups. The dashboard, the POS grid, the VAT table
+and the device trio are illustrations of the software, not copy — they are components, so an editor
+cannot publish a picture of a screen that does not look like that. `features[].icon` and
+`branches[].mockup` are the seams: an editor chooses *which* illustration, never what is in it.
 
 ## 5. Content Editing — Payload CMS (day one)
 
@@ -68,8 +107,14 @@ Static generation with on-demand ISR revalidation from Payload, `next/image` for
 - **features[0]:** Built for the counter — "Grid and barcode sales, variants and add-ons, senior and PWD discounts computed correctly, receipts printed or skipped, and shift closes that count the drawer with you."
 - **features[1]:** Profit, not just sales — "A daily email tells you what you made, not just what you sold. The dashboard shows today at a glance; analytics show the calendar heatmap, top sellers, slow movers, and where money leaks."
 - **features[2]:** Everything on the record — "Every sale, price change, refund, and adjustment is logged — who, when, and what changed. Immutable, complete, and yours to search."
-- **detail.bullets:** "Multiple branches, one account — move stock between them in seconds." · "Inventory that knows its expiry dates — get warned before stock becomes waste." · "Stock-take mode for count day: walk the shelves, key the numbers, done." · "Lost a tablet? Unpair it from the portal and it goes dark."
+- **branches.cards:** "Multiple branches, one account — move stock between them in seconds." · "Inventory that knows its expiry dates — get warned before stock becomes waste." · "Stock-take mode for count day: walk the shelves, key the numbers, done." · "Lost a tablet? Unpair it from the portal and it goes dark."
 - **banner.line:** Run your business in sight. · **banner.cta:** Request access
-- **footer:** support email · Terms of service · Privacy policy · © 2026 Code Box Studios
+- **contact:** codeboxstudios.official@gmail.com · code-box-studios.vercel.app · facebook.com/codeboxstudios
+- **footer:** Terms of service · Privacy policy · © 2026 Code Box Studios
+
+The rest — the hero badge and ticker, the counter and numbers bullets, the product captions, and
+the six *Also in the box* cards — is long enough that the field defaults in
+[`portal/src/cms/globals/LandingContent.ts`](portal/src/cms/globals/LandingContent.ts) are the
+readable copy of record. A fresh database renders the real page before anyone opens the CMS.
 
 Copy updates ride feature releases per §2 — the offline and staff-roles claims join this page only when those milestones ship.

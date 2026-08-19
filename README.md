@@ -8,7 +8,7 @@ Front-end workspace for **Sentry**, a point-of-sale system for Philippine small 
 | --- | --- | --- |
 | [`pos/`](pos/) | The POS terminal app — static Next.js export, running today against a mock API. See [`pos/README.md`](pos/README.md). | 3000 |
 | [`portal/`](portal/) | The landing page and, later, the owner portal. Hosts the Payload CMS. See [`portal/README.md`](portal/README.md). | 3100 |
-| [`design/`](design/) | `pos-terminal.dc.html` — pixel reference for all 11 POS screens at tablet landscape. | — |
+| [`design/`](design/) | Rendered pixel references: `pos-terminal.dc.html` (all 11 POS screens at tablet landscape) and `landing.dc.html` (the marketing page). | — |
 | [`brand/`](brand/) | Sentry logo marks and lockups. | — |
 | [`docs/`](docs/) | Implementation plans. | — |
 

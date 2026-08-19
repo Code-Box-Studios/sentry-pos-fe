@@ -1,4 +1,10 @@
-/** Used sparingly, per landing-spec §1 — one mark per feature card, drawn from the brand palette. */
+/**
+ * One mark per feature card, on a tinted tile.
+ *
+ * The design file draws these with the glyphs ⌸ ◫ ≡. Those are the only three characters on the
+ * page outside the Latin and peso ranges, and the first has no coverage in the default Windows or
+ * Android UI stacks — it renders as tofu. Same three ideas, drawn instead.
+ */
 const PATHS: Record<string, React.ReactNode> = {
   // The counter — a till.
   counter: (
@@ -28,13 +34,30 @@ const PATHS: Record<string, React.ReactNode> = {
   ),
 };
 
-export function FeatureIcon({ name }: { name: string }) {
+const TONES: Record<string, string> = {
+  mint: "bg-brand-green-soft text-brand-green-dark",
+  purple: "bg-accent-purple-soft text-accent-purple",
+  orange: "bg-accent-orange-soft text-accent-orange",
+};
+
+export function FeatureIcon({
+  name,
+  tone = "mint",
+  delay = 0,
+}: {
+  name: string;
+  tone?: string;
+  delay?: number;
+}) {
   return (
-    <span className="flex size-11 items-center justify-center rounded-lg bg-brand-green-soft">
+    <span
+      className={`anim-bob flex size-9 items-center justify-center rounded-[8px] ${TONES[tone] ?? TONES.mint}`}
+      style={delay ? { animationDelay: `${delay}ms` } : undefined}
+    >
       <svg
         aria-hidden
         viewBox="0 0 24 24"
-        className="size-5 text-brand-green-dark"
+        className="size-[18px]"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.6"

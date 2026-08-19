@@ -379,32 +379,106 @@ export interface LandingContent {
      */
     description: string;
   };
+  /**
+   * One page, no menu — these jump to section anchors. Use #counter, #numbers, #branches, #product or #contact.
+   */
+  nav?:
+    | {
+        label: string;
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
   hero: {
+    /**
+     * The small pill above the headline. Keep it short and true.
+     */
+    badge: string;
     headline: string;
     sub: string;
     primaryCta: string;
     secondaryCta: string;
     /**
-     * Portal dashboard product shot.
+     * Scrolls under the hero. Sample events, written the way the activity log writes them.
      */
-    screenshot?: (number | null) | Media;
+    ticker?:
+      | {
+          text: string;
+          id?: string | null;
+        }[]
+      | null;
   };
   features?:
     | {
         icon: 'counter' | 'chart' | 'record';
+        tone: 'mint' | 'purple' | 'orange';
         title: string;
         body: string;
         id?: string | null;
       }[]
     | null;
-  detail?: {
-    /**
-     * Second product shot, shown beside the bullets.
-     */
-    screenshot?: (number | null) | Media;
+  /**
+   * The band beside the POS mockup.
+   */
+  counter: {
+    eyebrow: string;
+    heading: string;
     bullets?:
       | {
           text: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * The band beside the tax-summary mockup.
+   */
+  numbers: {
+    eyebrow: string;
+    heading: string;
+    bullets?:
+      | {
+          text: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  branches: {
+    heading: string;
+    /**
+     * Each card pairs one line of copy with a fixed illustration. Pick which illustration sits above the line.
+     */
+    cards?:
+      | {
+          mockup: 'transfer' | 'expiry' | 'stocktake' | 'terminals';
+          text: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * The dark showcase card and the grid of smaller claims below it.
+   */
+  product: {
+    eyebrow: string;
+    heading: string;
+    sub: string;
+    /**
+     * Left to right, under the three device mockups.
+     */
+    captions?:
+      | {
+          text: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  extras: {
+    heading: string;
+    cards?:
+      | {
+          title: string;
+          body: string;
           id?: string | null;
         }[]
       | null;
@@ -413,11 +487,17 @@ export interface LandingContent {
     line: string;
     cta: string;
   };
-  footer: {
+  contact: {
     /**
-     * Backs the Request access mailto and the footer link.
+     * Backs every Request access button as well as the two contact rows.
      */
-    supportEmail: string;
+    email: string;
+    websiteUrl: string;
+    websiteLabel: string;
+    facebookUrl: string;
+    facebookLabel: string;
+  };
+  footer: {
     links?:
       | {
           label: string;
@@ -425,6 +505,7 @@ export interface LandingContent {
           id?: string | null;
         }[]
       | null;
+    copyright: string;
   };
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -440,31 +521,95 @@ export interface LandingContentSelect<T extends boolean = true> {
         title?: T;
         description?: T;
       };
+  nav?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
   hero?:
     | T
     | {
+        badge?: T;
         headline?: T;
         sub?: T;
         primaryCta?: T;
         secondaryCta?: T;
-        screenshot?: T;
+        ticker?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
       };
   features?:
     | T
     | {
         icon?: T;
+        tone?: T;
         title?: T;
         body?: T;
         id?: T;
       };
-  detail?:
+  counter?:
     | T
     | {
-        screenshot?: T;
+        eyebrow?: T;
+        heading?: T;
         bullets?:
           | T
           | {
               text?: T;
+              id?: T;
+            };
+      };
+  numbers?:
+    | T
+    | {
+        eyebrow?: T;
+        heading?: T;
+        bullets?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+      };
+  branches?:
+    | T
+    | {
+        heading?: T;
+        cards?:
+          | T
+          | {
+              mockup?: T;
+              text?: T;
+              id?: T;
+            };
+      };
+  product?:
+    | T
+    | {
+        eyebrow?: T;
+        heading?: T;
+        sub?: T;
+        captions?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+      };
+  extras?:
+    | T
+    | {
+        heading?: T;
+        cards?:
+          | T
+          | {
+              title?: T;
+              body?: T;
               id?: T;
             };
       };
@@ -474,10 +619,18 @@ export interface LandingContentSelect<T extends boolean = true> {
         line?: T;
         cta?: T;
       };
+  contact?:
+    | T
+    | {
+        email?: T;
+        websiteUrl?: T;
+        websiteLabel?: T;
+        facebookUrl?: T;
+        facebookLabel?: T;
+      };
   footer?:
     | T
     | {
-        supportEmail?: T;
         links?:
           | T
           | {
@@ -485,6 +638,7 @@ export interface LandingContentSelect<T extends boolean = true> {
               href?: T;
               id?: T;
             };
+        copyright?: T;
       };
   updatedAt?: T;
   createdAt?: T;

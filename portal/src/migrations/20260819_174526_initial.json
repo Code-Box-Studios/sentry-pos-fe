@@ -1060,6 +1060,178 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "cms.landing_content_nav": {
+      "name": "landing_content_nav",
+      "schema": "cms",
+      "columns": {
+        "_order": {
+          "name": "_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "_parent_id": {
+          "name": "_parent_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "href": {
+          "name": "href",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "landing_content_nav_order_idx": {
+          "name": "landing_content_nav_order_idx",
+          "columns": [
+            {
+              "expression": "_order",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "landing_content_nav_parent_id_idx": {
+          "name": "landing_content_nav_parent_id_idx",
+          "columns": [
+            {
+              "expression": "_parent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "landing_content_nav_parent_id_fk": {
+          "name": "landing_content_nav_parent_id_fk",
+          "tableFrom": "landing_content_nav",
+          "tableTo": "landing_content",
+          "schemaTo": "cms",
+          "columnsFrom": [
+            "_parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "cms.landing_content_hero_ticker": {
+      "name": "landing_content_hero_ticker",
+      "schema": "cms",
+      "columns": {
+        "_order": {
+          "name": "_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "_parent_id": {
+          "name": "_parent_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "text": {
+          "name": "text",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "landing_content_hero_ticker_order_idx": {
+          "name": "landing_content_hero_ticker_order_idx",
+          "columns": [
+            {
+              "expression": "_order",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "landing_content_hero_ticker_parent_id_idx": {
+          "name": "landing_content_hero_ticker_parent_id_idx",
+          "columns": [
+            {
+              "expression": "_parent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "landing_content_hero_ticker_parent_id_fk": {
+          "name": "landing_content_hero_ticker_parent_id_fk",
+          "tableFrom": "landing_content_hero_ticker",
+          "tableTo": "landing_content",
+          "schemaTo": "cms",
+          "columnsFrom": [
+            "_parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "cms.landing_content_features": {
       "name": "landing_content_features",
       "schema": "cms",
@@ -1089,6 +1261,14 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'counter'"
+        },
+        "tone": {
+          "name": "tone",
+          "type": "enum_landing_content_features_tone",
+          "typeSchema": "cms",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'mint'"
         },
         "title": {
           "name": "title",
@@ -1157,8 +1337,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "cms.landing_content_detail_bullets": {
-      "name": "landing_content_detail_bullets",
+    "cms.landing_content_counter_bullets": {
+      "name": "landing_content_counter_bullets",
       "schema": "cms",
       "columns": {
         "_order": {
@@ -1187,8 +1367,8 @@
         }
       },
       "indexes": {
-        "landing_content_detail_bullets_order_idx": {
-          "name": "landing_content_detail_bullets_order_idx",
+        "landing_content_counter_bullets_order_idx": {
+          "name": "landing_content_counter_bullets_order_idx",
           "columns": [
             {
               "expression": "_order",
@@ -1202,8 +1382,8 @@
           "method": "btree",
           "with": {}
         },
-        "landing_content_detail_bullets_parent_id_idx": {
-          "name": "landing_content_detail_bullets_parent_id_idx",
+        "landing_content_counter_bullets_parent_id_idx": {
+          "name": "landing_content_counter_bullets_parent_id_idx",
           "columns": [
             {
               "expression": "_parent_id",
@@ -1219,9 +1399,355 @@
         }
       },
       "foreignKeys": {
-        "landing_content_detail_bullets_parent_id_fk": {
-          "name": "landing_content_detail_bullets_parent_id_fk",
-          "tableFrom": "landing_content_detail_bullets",
+        "landing_content_counter_bullets_parent_id_fk": {
+          "name": "landing_content_counter_bullets_parent_id_fk",
+          "tableFrom": "landing_content_counter_bullets",
+          "tableTo": "landing_content",
+          "schemaTo": "cms",
+          "columnsFrom": [
+            "_parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "cms.landing_content_numbers_bullets": {
+      "name": "landing_content_numbers_bullets",
+      "schema": "cms",
+      "columns": {
+        "_order": {
+          "name": "_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "_parent_id": {
+          "name": "_parent_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "text": {
+          "name": "text",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "landing_content_numbers_bullets_order_idx": {
+          "name": "landing_content_numbers_bullets_order_idx",
+          "columns": [
+            {
+              "expression": "_order",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "landing_content_numbers_bullets_parent_id_idx": {
+          "name": "landing_content_numbers_bullets_parent_id_idx",
+          "columns": [
+            {
+              "expression": "_parent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "landing_content_numbers_bullets_parent_id_fk": {
+          "name": "landing_content_numbers_bullets_parent_id_fk",
+          "tableFrom": "landing_content_numbers_bullets",
+          "tableTo": "landing_content",
+          "schemaTo": "cms",
+          "columnsFrom": [
+            "_parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "cms.landing_content_branches_cards": {
+      "name": "landing_content_branches_cards",
+      "schema": "cms",
+      "columns": {
+        "_order": {
+          "name": "_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "_parent_id": {
+          "name": "_parent_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "mockup": {
+          "name": "mockup",
+          "type": "enum_landing_content_branches_cards_mockup",
+          "typeSchema": "cms",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'transfer'"
+        },
+        "text": {
+          "name": "text",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "landing_content_branches_cards_order_idx": {
+          "name": "landing_content_branches_cards_order_idx",
+          "columns": [
+            {
+              "expression": "_order",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "landing_content_branches_cards_parent_id_idx": {
+          "name": "landing_content_branches_cards_parent_id_idx",
+          "columns": [
+            {
+              "expression": "_parent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "landing_content_branches_cards_parent_id_fk": {
+          "name": "landing_content_branches_cards_parent_id_fk",
+          "tableFrom": "landing_content_branches_cards",
+          "tableTo": "landing_content",
+          "schemaTo": "cms",
+          "columnsFrom": [
+            "_parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "cms.landing_content_product_captions": {
+      "name": "landing_content_product_captions",
+      "schema": "cms",
+      "columns": {
+        "_order": {
+          "name": "_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "_parent_id": {
+          "name": "_parent_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "text": {
+          "name": "text",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "landing_content_product_captions_order_idx": {
+          "name": "landing_content_product_captions_order_idx",
+          "columns": [
+            {
+              "expression": "_order",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "landing_content_product_captions_parent_id_idx": {
+          "name": "landing_content_product_captions_parent_id_idx",
+          "columns": [
+            {
+              "expression": "_parent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "landing_content_product_captions_parent_id_fk": {
+          "name": "landing_content_product_captions_parent_id_fk",
+          "tableFrom": "landing_content_product_captions",
+          "tableTo": "landing_content",
+          "schemaTo": "cms",
+          "columnsFrom": [
+            "_parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "cms.landing_content_extras_cards": {
+      "name": "landing_content_extras_cards",
+      "schema": "cms",
+      "columns": {
+        "_order": {
+          "name": "_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "_parent_id": {
+          "name": "_parent_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body": {
+          "name": "body",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "landing_content_extras_cards_order_idx": {
+          "name": "landing_content_extras_cards_order_idx",
+          "columns": [
+            {
+              "expression": "_order",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "landing_content_extras_cards_parent_id_idx": {
+          "name": "landing_content_extras_cards_parent_id_idx",
+          "columns": [
+            {
+              "expression": "_parent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "landing_content_extras_cards_parent_id_fk": {
+          "name": "landing_content_extras_cards_parent_id_fk",
+          "tableFrom": "landing_content_extras_cards",
           "tableTo": "landing_content",
           "schemaTo": "cms",
           "columnsFrom": [
@@ -1353,6 +1879,13 @@
           "notNull": true,
           "default": "'A point-of-sale and analytics platform for PH stores and cafés. Ring sales, track stock and expiry, and see your profit — across every branch, every day.'"
         },
+        "hero_badge": {
+          "name": "hero_badge",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Now onboarding pilot stores'"
+        },
         "hero_headline": {
           "name": "hero_headline",
           "type": "varchar",
@@ -1365,7 +1898,7 @@
           "type": "varchar",
           "primaryKey": false,
           "notNull": true,
-          "default": "'Sentry is a point-of-sale and monitoring platform for Philippine stores and cafés — ring sales at the counter, then watch sales, profit, and stock across every branch from one dashboard.'"
+          "default": "'Sentry is a point-of-sale and monitoring platform for Philippine stores — ring sales at the counter, then watch sales, profit, and stock across every branch from one dashboard.'"
         },
         "hero_primary_cta": {
           "name": "hero_primary_cta",
@@ -1381,17 +1914,68 @@
           "notNull": true,
           "default": "'Request access'"
         },
-        "hero_screenshot_id": {
-          "name": "hero_screenshot_id",
-          "type": "integer",
+        "counter_eyebrow": {
+          "name": "counter_eyebrow",
+          "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "'AT THE COUNTER'"
         },
-        "detail_screenshot_id": {
-          "name": "detail_screenshot_id",
-          "type": "integer",
+        "counter_heading": {
+          "name": "counter_heading",
+          "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "'Fast enough for the morning rush.'"
+        },
+        "numbers_eyebrow": {
+          "name": "numbers_eyebrow",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'THE NUMBERS'"
+        },
+        "numbers_heading": {
+          "name": "numbers_heading",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Know what you made, not just what you sold.'"
+        },
+        "branches_heading": {
+          "name": "branches_heading",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Run every branch from wherever you are.'"
+        },
+        "product_eyebrow": {
+          "name": "product_eyebrow",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'THE PRODUCT'"
+        },
+        "product_heading": {
+          "name": "product_heading",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Every screen, one design language.'"
+        },
+        "product_sub": {
+          "name": "product_sub",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Dense where you work fast, calm where you read numbers — the counter, the portal, and your phone all speak the same Sentry.'"
+        },
+        "extras_heading": {
+          "name": "extras_heading",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Also in the box'"
         },
         "banner_line": {
           "name": "banner_line",
@@ -1407,12 +1991,47 @@
           "notNull": true,
           "default": "'Request access'"
         },
-        "footer_support_email": {
-          "name": "footer_support_email",
+        "contact_email": {
+          "name": "contact_email",
           "type": "varchar",
           "primaryKey": false,
           "notNull": true,
-          "default": "'support@sentrypos.ph'"
+          "default": "'codeboxstudios.official@gmail.com'"
+        },
+        "contact_website_url": {
+          "name": "contact_website_url",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'https://code-box-studios.vercel.app/'"
+        },
+        "contact_website_label": {
+          "name": "contact_website_label",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'code-box-studios.vercel.app'"
+        },
+        "contact_facebook_url": {
+          "name": "contact_facebook_url",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'https://www.facebook.com/codeboxstudios'"
+        },
+        "contact_facebook_label": {
+          "name": "contact_facebook_label",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'facebook.com/codeboxstudios'"
+        },
+        "footer_copyright": {
+          "name": "footer_copyright",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'© 2026 Code Box Studios'"
         },
         "updated_at": {
           "name": "updated_at",
@@ -1427,68 +2046,8 @@
           "notNull": false
         }
       },
-      "indexes": {
-        "landing_content_hero_hero_screenshot_idx": {
-          "name": "landing_content_hero_hero_screenshot_idx",
-          "columns": [
-            {
-              "expression": "hero_screenshot_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "landing_content_detail_detail_screenshot_idx": {
-          "name": "landing_content_detail_detail_screenshot_idx",
-          "columns": [
-            {
-              "expression": "detail_screenshot_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "landing_content_hero_screenshot_id_media_id_fk": {
-          "name": "landing_content_hero_screenshot_id_media_id_fk",
-          "tableFrom": "landing_content",
-          "tableTo": "media",
-          "schemaTo": "cms",
-          "columnsFrom": [
-            "hero_screenshot_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "landing_content_detail_screenshot_id_media_id_fk": {
-          "name": "landing_content_detail_screenshot_id_media_id_fk",
-          "tableFrom": "landing_content",
-          "tableTo": "media",
-          "schemaTo": "cms",
-          "columnsFrom": [
-            "detail_screenshot_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1505,6 +2064,25 @@
         "chart",
         "record"
       ]
+    },
+    "cms.enum_landing_content_features_tone": {
+      "name": "enum_landing_content_features_tone",
+      "schema": "cms",
+      "values": [
+        "mint",
+        "purple",
+        "orange"
+      ]
+    },
+    "cms.enum_landing_content_branches_cards_mockup": {
+      "name": "enum_landing_content_branches_cards_mockup",
+      "schema": "cms",
+      "values": [
+        "transfer",
+        "expiry",
+        "stocktake",
+        "terminals"
+      ]
     }
   },
   "schemas": {
@@ -1519,6 +2097,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "32a85f7b-be5d-4067-adfc-f2f242b577d1",
+  "id": "12cac093-bd04-4b17-b713-f4bcee865e6d",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }
