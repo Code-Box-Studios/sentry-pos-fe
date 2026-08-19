@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Figtree, Source_Code_Pro } from "next/font/google";
+import { TerminalGate } from "@/components/chrome/TerminalGate";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-figtree", weight: ["400", "500", "600", "700"] });
@@ -11,7 +13,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${figtree.variable} ${sourceCodePro.variable} font-sans bg-surface text-ink antialiased`}>
-        {children}
+        <TerminalGate>{children}</TerminalGate>
+        <Toaster theme="light" position="top-center" />
+        <div id="print-root" />
       </body>
     </html>
   );

@@ -53,6 +53,11 @@
   --radius-xl: 16px;
 }
 
+:root {
+  /* shadcn components read a bare --radius for a few inline styles (sonner). */
+  --radius: 12px;
+}
+
 @media print {
   body > * { display: none !important; }
   #print-root { display: block !important; }
