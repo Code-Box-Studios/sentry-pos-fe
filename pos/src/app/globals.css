@@ -61,6 +61,8 @@
 @media print {
   body > * { display: none !important; }
   #print-root { display: block !important; }
+  .print-58 { width: 58mm; }
+  .print-80 { width: 80mm; }
 }
 
 #print-root { display: none; }
