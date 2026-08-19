@@ -7,7 +7,9 @@ import { TopBar } from "@/components/chrome/TopBar";
 import { CartPane } from "@/components/sale/CartPane";
 import { ALL_CATEGORIES, CategoryTabs } from "@/components/sale/CategoryTabs";
 import { ProductGrid } from "@/components/sale/ProductGrid";
+import { MiscItemModal } from "@/components/sale/MiscItemModal";
 import { SearchBar } from "@/components/sale/SearchBar";
+import { VariantModifierSheet } from "@/components/sale/VariantModifierSheet";
 import { WeightModal } from "@/components/sale/WeightModal";
 import type { Product } from "@/domain/types";
 import { useCatalogStore } from "@/state/catalog";
@@ -20,6 +22,8 @@ export default function SalePage() {
   const setQty = useCartStore((s) => s.setQty);
   const [categoryId, setCategoryId] = useState(ALL_CATEGORIES);
   const [search, setSearch] = useState("");
+  const [sheetProduct, setSheetProduct] = useState<Product | null>(null);
+  const [miscOpen, setMiscOpen] = useState(false);
   const [weightFor, setWeightFor] = useState<{ product: Product; lineId: string | null; qty?: number } | null>(null);
 
   const business = catalog?.business ?? null;
@@ -34,8 +38,10 @@ export default function SalePage() {
   }
 
   function selectProduct(product: Product) {
-    // Variants and modifier groups open the sheet in Task 12.
-    if (product.variants.length > 0 || product.modifierGroupIds.length > 0) return;
+    if (product.variants.length > 0 || product.modifierGroupIds.length > 0) {
+      setSheetProduct(product);
+      return;
+    }
     if (product.soldBy === "weight") {
       setWeightFor({ product, lineId: null });
       return;
@@ -68,6 +74,7 @@ export default function SalePage() {
             value={search}
             onChange={setSearch}
             allowMisc={business?.allowMiscItems ?? false}
+            onMisc={() => setMiscOpen(true)}
             autoFocus={business?.type === "retail"}
           />
           <CategoryTabs categories={catalog?.categories ?? []} value={categoryId} onChange={setCategoryId} />
@@ -90,6 +97,9 @@ export default function SalePage() {
           />
         </aside>
       </div>
+
+      <VariantModifierSheet product={sheetProduct} onClose={() => setSheetProduct(null)} />
+      <MiscItemModal open={miscOpen} onClose={() => setMiscOpen(false)} />
 
       <WeightModal
         product={weightFor?.product ?? null}
