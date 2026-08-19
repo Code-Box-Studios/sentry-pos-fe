@@ -11,6 +11,9 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     globals: true,
+    // Dialog tests drive dozens of pointer events; the 5s default is tight on a busy machine,
+    // and a timed-out test leaves the runner unable to finish.
+    testTimeout: 20000,
   },
   resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
 });

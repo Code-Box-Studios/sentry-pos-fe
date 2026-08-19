@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/chrome/TopBar";
 import { AdjustDialog } from "@/components/stock/AdjustDialog";
 import { buildStockRows, StockList, type StockRow } from "@/components/stock/StockList";
+import { handleApiError } from "@/lib/handle-api-error";
 import { useCatalogStore } from "@/state/catalog";
 
 export default function StockPage() {
+  const router = useRouter();
+  // Router identity is not guaranteed stable; a ref keeps it out of effect deps and out of a loop.
+  const routerRef = useRef(router);
+  routerRef.current = router;
   const products = useCatalogStore((s) => s.catalog?.products ?? []);
   const availableQty = useCatalogStore((s) => s.availableQty);
   const refreshStock = useCatalogStore((s) => s.refreshStock);
@@ -17,9 +22,7 @@ export default function StockPage() {
 
   useEffect(() => {
     // The dialog says "System says {n}", so start from the server's numbers.
-    void refreshStock().catch((e: unknown) =>
-      toast.error(e instanceof Error ? e.message : "Could not load stock")
-    );
+    void refreshStock().catch((e: unknown) => handleApiError(e, routerRef.current));
   }, [refreshStock]);
 
   const rows = buildStockRows(products, availableQty);

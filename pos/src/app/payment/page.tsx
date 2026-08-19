@@ -12,6 +12,7 @@ import { NonCashPanel } from "@/components/payment/NonCashPanel";
 import { OrderSummaryRail } from "@/components/payment/OrderSummaryRail";
 import { Button } from "@/components/ui/button";
 import type { PaymentMethod } from "@/domain/types";
+import { handleApiError } from "@/lib/handle-api-error";
 import { formatPeso } from "@/lib/money";
 import { nowIso } from "@/lib/time";
 import { newId } from "@/lib/uuid";
@@ -93,7 +94,11 @@ export default function PaymentPage() {
         router.replace("/sale");
         return;
       }
-      toast.error(e instanceof Error ? e.message : "Could not complete the sale");
+      try {
+        handleApiError(e, router);
+      } catch {
+        toast.error(e instanceof Error ? e.message : "Could not complete the sale");
+      }
     } finally {
       setBusy(false);
     }

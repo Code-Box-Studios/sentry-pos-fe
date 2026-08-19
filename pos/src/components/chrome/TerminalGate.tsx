@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useCartStore } from "@/state/cart";
 import { useCatalogStore } from "@/state/catalog";
 import { usePairingStore } from "@/state/pairing";
 import { useShiftStore } from "@/state/shift";
@@ -23,13 +24,21 @@ export function TerminalGate({ children }: { children: React.ReactNode }) {
   const shift = useShiftStore((s) => s.shift);
   const shiftHydrated = useShiftStore((s) => s.hydrated);
   const bootedFor = useRef<string | null>(null);
+  const clearedCartFor = useRef(false);
 
   useEffect(() => {
     if (!hydrated) return;
     if (status === "unpaired") {
+      // Whatever cleared the pairing — Settings' unpair, or a portal remote-unpair 401 caught in the
+      // catalog store — leaves the cart behind. No sale should survive into the next pairing.
+      if (!clearedCartFor.current) {
+        clearedCartFor.current = true;
+        useCartStore.getState().resetAll();
+      }
       if (pathname !== "/pair") router.replace("/pair");
       return;
     }
+    clearedCartFor.current = false;
     if (pathname === "/pair" || pathname === "/") {
       router.replace("/sale");
       return;

@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getApi } from "@/api";
 import type { CompletedSale, SaleSummary } from "@/api/types";
 import { TopBar } from "@/components/chrome/TopBar";
@@ -10,6 +10,7 @@ import { RefundDialog } from "@/components/history/RefundDialog";
 import { SaleRow } from "@/components/history/SaleRow";
 import { VoidDialog } from "@/components/history/VoidDialog";
 import { Button } from "@/components/ui/button";
+import { handleApiError } from "@/lib/handle-api-error";
 import { formatPeso } from "@/lib/money";
 import { manilaDateKey, nowIso } from "@/lib/time";
 
@@ -26,6 +27,10 @@ function summarise(sales: SaleSummary[]): string {
 }
 
 export default function HistoryPage() {
+  const router = useRouter();
+  // Router identity is not guaranteed stable; a ref keeps it out of the callback deps.
+  const routerRef = useRef(router);
+  routerRef.current = router;
   const today = manilaDateKey(nowIso());
   const [date, setDate] = useState<string | null>(today);
   const [sales, setSales] = useState<SaleSummary[]>([]);
@@ -37,7 +42,7 @@ export default function HistoryPage() {
     try {
       setSales(await getApi().listSales({ date }));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not load sales");
+      handleApiError(e, routerRef.current);
     }
   }, [date]);
 
@@ -49,7 +54,7 @@ export default function HistoryPage() {
     try {
       setSelected(await getApi().getSale(id));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not open the sale");
+      handleApiError(e, routerRef.current);
     }
   }
 

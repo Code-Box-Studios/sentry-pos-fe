@@ -70,7 +70,7 @@ const enterPin = async (user: ReturnType<typeof userEvent.setup>, pin: string) =
 };
 
 test("refund needs both a reason and a full PIN", async () => {
-  const user = userEvent.setup();
+  const user = userEvent.setup({ delay: null });
   render(<RefundDialog sale={sale} open onClose={onClose} onDone={onDone} />);
 
   const submit = screen.getByRole("button", { name: "Refund ₱24.00" });
@@ -87,7 +87,7 @@ test("refund needs both a reason and a full PIN", async () => {
 });
 
 test("a wrong PIN counts down and leaves the sale completed", async () => {
-  const user = userEvent.setup();
+  const user = userEvent.setup({ delay: null });
   render(<RefundDialog sale={sale} open onClose={onClose} onDone={onDone} />);
 
   await user.type(screen.getByLabelText("Reason"), "Customer returned order");
@@ -105,7 +105,7 @@ test("a wrong PIN counts down and leaves the sale completed", async () => {
 });
 
 test("the fourth failure locks the terminal and disables the button", async () => {
-  const user = userEvent.setup();
+  const user = userEvent.setup({ delay: null });
   render(<RefundDialog sale={sale} open onClose={onClose} onDone={onDone} />);
   await user.type(screen.getByLabelText("Reason"), "Customer returned order");
 
@@ -119,7 +119,7 @@ test("the fourth failure locks the terminal and disables the button", async () =
 });
 
 test("the right PIN refunds, returns stock and reports the updated sale", async () => {
-  const user = userEvent.setup();
+  const user = userEvent.setup({ delay: null });
   render(<RefundDialog sale={sale} open onClose={onClose} onDone={onDone} />);
 
   await user.type(screen.getByLabelText("Reason"), "wrong size served");
@@ -141,7 +141,7 @@ test("an in-shift refund warns about the drawer; an out-of-shift one does not", 
 });
 
 test("void requires a reason and returns stock", async () => {
-  const user = userEvent.setup();
+  const user = userEvent.setup({ delay: null });
   render(<VoidDialog sale={sale} open onClose={onClose} onDone={onDone} />);
 
   const submit = screen.getByRole("button", { name: "Void sale" });

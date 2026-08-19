@@ -3,6 +3,17 @@ import { getApi } from "@/api";
 import { UnauthorizedError } from "@/api/errors";
 import type { CatalogPayload, StockLevel } from "@/domain/types";
 import { usePairingStore } from "./pairing";
+import { useShiftStore } from "./shift";
+
+/**
+ * Clears what this store is allowed to reach. It deliberately does NOT import handle-api-error:
+ * that module pulls in the cart store, which imports this one, and the cycle wrecks module
+ * evaluation. TerminalGate finishes the job (cart included) when it sees the terminal go unpaired.
+ */
+function clearTerminal(): void {
+  usePairingStore.getState().unpair();
+  useShiftStore.getState().reset();
+}
 
 export function stockKey(productId: string, variantId: string | null): string {
   return `${productId}:${variantId ?? ""}`;
@@ -30,8 +41,8 @@ export const useCatalogStore = create<CatalogState>()((set, get) => ({
       const catalog = await getApi().pullCatalog();
       set({ catalog, stock: toStockMap(catalog.stock) });
     } catch (e) {
-      // A remote unpair 401s the next call; TerminalGate's redirect handles navigation.
-      if (e instanceof UnauthorizedError) usePairingStore.getState().unpair();
+      // A remote unpair 401s the next call; state only — TerminalGate handles the redirect.
+      if (e instanceof UnauthorizedError) clearTerminal();
       else throw e;
     }
   },
@@ -39,7 +50,8 @@ export const useCatalogStore = create<CatalogState>()((set, get) => ({
     try {
       set({ stock: toStockMap(await getApi().getStockLevels()) });
     } catch (e) {
-      if (e instanceof UnauthorizedError) usePairingStore.getState().unpair();
+      // State only — TerminalGate handles the redirect once the pairing is gone.
+      if (e instanceof UnauthorizedError) clearTerminal();
       else throw e;
     }
   },

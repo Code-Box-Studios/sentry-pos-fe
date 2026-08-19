@@ -16,6 +16,7 @@ import { ZReportView } from "@/components/shift/ZReportView";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { crossedDayBoundary } from "@/lib/day-boundary";
+import { handleApiError } from "@/lib/handle-api-error";
 import { nowIso } from "@/lib/time";
 import { useCartStore } from "@/state/cart";
 import { useCatalogStore } from "@/state/catalog";
@@ -44,7 +45,7 @@ export default function ShiftPage() {
     try {
       setTotals(await getApi().getShiftTotals());
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not load shift totals");
+      handleApiError(e);
     }
   }, []);
 
@@ -58,7 +59,11 @@ export default function ShiftPage() {
     try {
       setZ(await closeShift(countedCashC));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not close the shift");
+      try {
+        handleApiError(e, router);
+      } catch {
+        toast.error(e instanceof Error ? e.message : "Could not close the shift");
+      }
     } finally {
       setBusy(false);
     }
