@@ -17,6 +17,9 @@ export default buildConfig({
     user: CmsUsers.slug,
     meta: {
       titleSuffix: "— Sentry CMS",
+      // Without this the CMS tab wears the Payload logo. The landing page's own icon comes from
+      // the app/(frontend)/icon.svg file convention; Payload's admin is outside that segment.
+      icons: [{ rel: "icon", type: "image/svg+xml", url: "/brand/sentry-favicon.svg" }],
     },
   },
   collections: [CmsUsers, Media],

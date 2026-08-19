@@ -42,6 +42,24 @@ configs pin `outputFileTracingRoot` to their own directory.
 
 To run one on its own, use `pnpm dev:pos` / `pnpm dev:portal`, or `cd` into either and `pnpm dev`.
 
+## Test accounts
+
+Development only. All of it is seed or local-database data; production credentials come from the
+host's secret store.
+
+| Where | Sign in with | Notes |
+| --- | --- | --- |
+| POS terminal — http://localhost:3000 | `maria@kapediaria.ph` / `sentry-demo` | Refund PIN `123456`. Four wrong PINs lock the terminal for five minutes. |
+| CMS — http://localhost:3100/cms | `admin@sentry.local` / `sentry-demo` | Edits the landing page copy. Change it in **Settings → CMS users**. |
+
+The POS is backed by `MockPosApi` in localStorage under `sentry-pos:mock:v1` — clear site data to
+reset to seed. Its tenant is Kape Diaria, branches Marikit `MKT` and Bayanihan `BYN`; pairing asks
+for a business, a branch and a terminal name rather than a code.
+
+The landing page's **Sign in** button points at the POS in development. In production it belongs to
+the owner portal (`app.`, per [`project-spec.md`](project-spec.md) §12), which is not built yet —
+see `NEXT_PUBLIC_APP_SIGNIN_URL` in [`portal/.env.example`](portal/.env.example).
+
 ## Working on the POS app
 
 Sign in with `maria@kapediaria.ph` / `sentry-demo`; the refund PIN is `123456`. Everything is backed

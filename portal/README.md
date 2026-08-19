@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sentry portal — landing page and CMS
 
-## Getting Started
+Two things live here today: the public marketing page at `/`, and the Payload CMS that edits its
+copy at `/cms`. The owner portal — dashboard, analytics, catalogue — is the next thing to land in
+this app, at the `app.` subdomain.
 
-First, run the development server:
+Unlike [`../pos/`](../pos/), this app is **server-rendered**. It talks to Postgres, so it needs
+Docker running; the terminal needs neither.
+
+Behaviour is specified in [`../landing-spec.md`](../landing-spec.md); the visual language is
+[`../design-spec.md`](../design-spec.md), with the rendered reference in
+[`../design/landing.dc.html`](../design/landing.dc.html).
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker compose up -d      # from the repo root — Postgres on :5433
+pnpm install
+pnpm dev                  # http://localhost:3100
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Or run both apps at once with `pnpm dev` from the repo root.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Script | Does |
+| --- | --- |
+| `pnpm dev` | Next dev server on port 3100 |
+| `pnpm build` | Production build — runs migrations' worth of schema expectations, so the database must be up |
+| `pnpm lint` | ESLint |
+| `pnpm generate:types` | Regenerate `src/payload-types.ts` after a collection or global changes |
+| `pnpm payload migrate:create <name>` | New migration — **needs a real terminal**, see below |
+| `pnpm payload migrate` | Apply pending migrations |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Signing in to the CMS
 
-## Learn More
+Development account: `admin@sentry.local` / `sentry-demo`. Manage accounts under
+**Settings → CMS users**. If the database is fresh, the first visit to `/cms` prompts you to create
+the first user instead.
 
-To learn more about Next.js, take a look at the following resources:
+The CMS connects as `cms_user`, which holds rights in the `cms` schema and nowhere else — a
+compromised marketing login reaches page copy, not sales data (landing-spec §5).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## The landing page
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Every string on the page comes from the **Landing page** global — nothing is hardcoded in
+components. Saving it calls `revalidateTag`, so an edit is live within seconds while visitors keep
+being served a static page.
 
-## Deploy on Vercel
+What is deliberately *not* editable: the product mockups in
+[`src/components/landing/mockups/`](src/components/landing/mockups/). The dashboard, the POS grid,
+the tax summary and the device trio are illustrations of the software rather than copy — there is
+no portal to screenshot yet, and a hand-built mockup can stay honest about what the product does.
+`features[].icon` and `branches[].mockup` are the seams: an editor chooses *which* illustration,
+never what is inside it.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Their figures are not decorative either. Every cart on the page rings up the basket asserted in
+[`../pos/src/domain/totals.test.ts`](../pos/src/domain/totals.test.ts), shared through
+[`src/components/landing/mockups/demo-cart.ts`](src/components/landing/mockups/demo-cart.ts), so
+the columns survive being added up.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Migrations
+
+`payload migrate:create` needs an interactive terminal: when the schema drops one table and adds
+others, drizzle-kit asks "created, or renamed from X?" once per table, and there is no flag to
+answer in advance. Run it in your own shell, not through a script or a CI step.
+
+## Environment
+
+Copy `.env.example` to `.env`. The committed values are development-only.
+
+| Variable | For |
+| --- | --- |
+| `DATABASE_URI` | Postgres, as `cms_user` |
+| `PAYLOAD_SECRET` | Signs Payload's JWTs — must be replaced in production |
+| `NEXT_PUBLIC_APP_SIGNIN_URL` | Where the landing page's **Sign in** goes; the owner portal in production, the POS locally |
