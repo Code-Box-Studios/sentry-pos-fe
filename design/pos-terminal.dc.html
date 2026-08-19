@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body { margin:0; background:#EDF1F0; font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#001E2B; }
+a { color:#00684A; text-decoration:none; } a:hover { color:#004D37; text-decoration:underline; }
+</style>
+</helmet>
+<div style="padding:56px; display:flex; flex-direction:column; gap:64px;">
+  <div style="display:flex; flex-direction:column; gap:8px; max-width:1194px;">
+    <img src="brand/sentry-lockup.svg" alt="Sentry" style="height:40px; width:auto; align-self:flex-start;">
+    <div style="font-size:22px; font-weight:500; color:#3D4F58;">POS Terminal — MVP screens · tablet landscape 1194×834 · per pos-spec.md</div>
+    <div style="font-size:14px; color:#5C6C75;">Sample tenant: Kape Diaria (mixed café + retail) · Marikit branch · Terminal T1 · VAT 12% inclusive · service charge 5% on dine-in</div>
+  </div>
+
+  <!-- 01 Pairing -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#5C6C75;">01 · PAIRING — first launch, online-only</div>
+    <div data-screen-label="01 Pairing" style="width:1194px; height:834px; background:#001E2B; border-radius:12px; box-shadow:rgba(0,30,43,0.12) 0px 12px 24px -4px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:28px; width:520px;">
+        <img src="brand/sentry-mark-reverse.svg" alt="" style="height:64px; width:64px;">
+        <div style="text-align:center; display:flex; flex-direction:column; gap:8px;">
+          <div style="font-size:28px; font-weight:500; color:#FFFFFF;">Pair this terminal</div>
+          <div style="font-size:15px; color:rgba(255,255,255,0.64);">Sign in as the business owner to bind this device to one branch.</div>
+        </div>
+        <div style="background:#FFFFFF; border-radius:12px; padding:32px; width:100%; box-sizing:border-box; display:flex; flex-direction:column; gap:20px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:24px; height:24px; border-radius:9999px; background:#00ED64; color:#001E2B; font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center;">✓</div>
+            <div style="font-size:14px; color:#3D4F58;">Signed in — <span style="font-weight:600; color:#001E2B;">maria@kapediaria.ph</span></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:24px; height:24px; border-radius:9999px; background:#00ED64; color:#001E2B; font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center;">✓</div>
+            <div style="font-size:14px; color:#3D4F58;">Business — <span style="font-weight:600; color:#001E2B;">Kape Diaria</span></div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:13px; font-weight:600; color:#001E2B;">Branch</div>
+            <div style="display:flex; gap:8px;">
+              <div style="padding:10px 18px; border-radius:9999px; background:#001E2B; color:#FFFFFF; font-size:14px; font-weight:600;">Marikit — MKT</div>
+              <div style="padding:10px 18px; border-radius:9999px; border:1px solid #E8EDEB; color:#5C6C75; font-size:14px; font-weight:600;">Bayanihan — BYN</div>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:13px; font-weight:600; color:#001E2B;">Terminal name</div>
+            <div style="height:44px; border:1px solid #C1C7C6; border-radius:8px; display:flex; align-items:center; padding:0 14px; font-size:16px; color:#001E2B;">Counter 1</div>
+          </div>
+          <div style="height:44px; border-radius:9999px; background:#00ED64; color:#001E2B; font-size:14px; font-weight:600; display:flex; align-items:center; justify-content:center;">Pair terminal</div>
+        </div>
+        <div style="font-size:13px; color:rgba(255,255,255,0.48);">One terminal, one branch. Moving the device is unpair + re-pair.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 Shift open -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#5C6C75;">02 · SHIFT OPEN — required before selling</div>
+    <div data-screen-label="02 Shift Open" style="width:1194px; height:834px; background:#F9FBFA; border-radius:12px; box-shadow:rgba(0,30,43,0.12) 0px 12px 24px -4px; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="height:52px; background:#FFFFFF; border-bottom:1px solid #E8EDEB; display:flex; align-items:center; padding:0 20px; gap:16px; flex:none;">
+        <img src="brand/sentry-mark.svg" alt="" style="height:24px; width:24px;">
+        <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#3D4F58;">MKT · T1</div>
+        <div style="flex:1;"></div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:#5C6C75;"><div style="width:8px; height:8px; border-radius:9999px; background:#944F01;"></div>No shift open</div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:#00684A;"><div style="width:8px; height:8px; border-radius:9999px; background:#00ED64;"></div>Online</div>
+      </div>
+      <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+        <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:40px; width:460px; display:flex; flex-direction:column; gap:24px;">
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <div style="font-size:24px; font-weight:500;">Open a shift</div>
+            <div style="font-size:14px; color:#5C6C75;">Count the drawer and enter the opening float.</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:13px; font-weight:600;">Opening cash</div>
+            <div style="height:56px; border:2px solid #00684A; border-radius:8px; display:flex; align-items:center; padding:0 16px; font-size:24px; font-weight:600; font-family:'Source Code Pro',monospace;">₱2,000.00</div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
+            <div style="height:56px; border:1px solid #E8EDEB; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:500;">1</div>
+            <div style="height:56px; border:1px solid #E8EDEB; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:500;">2</div>
+            <div style="height:56px; border:1px solid #E8EDEB; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:500;">3</div>
+            <div style="height:56px; border:1px solid #E8EDEB; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:500;">4</div>
+            <div style="height:56px; border:1px solid #E8EDEB; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:500;">5</div>
+            <div style="height:56px; border:1px solid #E8EDEB; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:500;">6</div>
+            <div style="height:56px; border:1px solid #E8EDEB; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:500;">7</div>
+            <div style="height:56px; border:1px solid #E8EDEB; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:500;">8</div>
+            <div style="height:56px; border:1px solid #E8EDEB; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:500;">9</div>
+            <div style="height:56px; border:1px solid #E8EDEB; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:500;">.</div>
+            <div style="height:56px; border:1px solid #E8EDEB; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:500;">0</div>
+            <div style="height:56px; border:1px solid #E8EDEB; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:500; color:#5C6C75;">⌫</div>
+          </div>
+          <div style="height:48px; border-radius:9999px; background:#00ED64; color:#001E2B; font-size:14px; font-weight:600; display:flex; align-items:center; justify-content:center;">Open shift</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 Sale -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#5C6C75;">03 · SALE (HOME) — mixed business, grid-forward with search + barcode</div>
+    <div data-screen-label="03 Sale" style="width:1194px; height:834px; background:#F9FBFA; border-radius:12px; box-shadow:rgba(0,30,43,0.12) 0px 12px 24px -4px; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="height:52px; background:#FFFFFF; border-bottom:1px solid #E8EDEB; display:flex; align-items:center; padding:0 20px; gap:20px; flex:none;">
+        <img src="brand/sentry-mark.svg" alt="" style="height:24px; width:24px;">
+        <div style="display:flex; gap:4px;">
+          <div style="padding:6px 16px; border-radius:9999px; background:#001E2B; color:#FFFFFF; font-size:13px; font-weight:600;">Sale</div>
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">History</div>
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Shift</div>
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Stock</div>
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Settings</div>
+        </div>
+        <div style="flex:1;"></div>
+        <sc-if value="{{ demoMode }}" hint-placeholder-val="{{ false }}"><div style="padding:3px 10px; border-radius:9999px; background:#FFEC9E; color:#944F01; font-size:11px; font-weight:600; letter-spacing:1px;">DEMO</div></sc-if>
+        <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#3D4F58;">MKT · T1</div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:#00684A;"><div style="width:8px; height:8px; border-radius:9999px; background:#00ED64;"></div>Shift open · 7:02 AM</div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:#00684A;"><div style="width:8px; height:8px; border-radius:9999px; background:#00ED64;"></div>Online</div>
+      </div>
+      <div style="flex:1; display:flex; min-height:0;">
+        <div style="flex:1; display:flex; flex-direction:column; padding:20px; gap:16px; min-width:0;">
+          <div style="display:flex; gap:12px;">
+            <div style="flex:1; height:44px; background:#FFFFFF; border:1px solid #C1C7C6; border-radius:8px; display:flex; align-items:center; padding:0 14px; gap:10px; font-size:15px; color:#889397;">⌕ &nbsp;Search name or SKU — scanner adds instantly</div>
+            <div style="height:44px; padding:0 20px; border-radius:9999px; border:1px dashed #C1C7C6; color:#3D4F58; font-size:14px; font-weight:600; display:flex; align-items:center;">+ Misc item</div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <div style="padding:8px 16px; border-radius:9999px; background:#001E2B; color:#FFFFFF; font-size:13px; font-weight:600;">All</div>
+            <div style="padding:8px 16px; border-radius:9999px; border:1px solid #E8EDEB; background:#FFFFFF; color:#5C6C75; font-size:13px; font-weight:600;">Coffee</div>
+            <div style="padding:8px 16px; border-radius:9999px; border:1px solid #E8EDEB; background:#FFFFFF; color:#5C6C75; font-size:13px; font-weight:600;">Bakery</div>
+            <div style="padding:8px 16px; border-radius:9999px; border:1px solid #E8EDEB; background:#FFFFFF; color:#5C6C75; font-size:13px; font-weight:600;">Grocery</div>
+            <div style="padding:8px 16px; border-radius:9999px; border:1px solid #E8EDEB; background:#FFFFFF; color:#5C6C75; font-size:13px; font-weight:600;">Meals</div>
+          </div>
+          <div style="flex:1; display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:118px; gap:12px; overflow:hidden;">
+            <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;"><div style="font-size:15px; font-weight:600;">Espresso</div><div style="font-size:14px; color:#5C6C75;">₱85.00</div></div>
+            <div style="background:#FFFFFF; border:2px solid #00ED64; border-radius:12px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;"><div style="display:flex; flex-direction:column; gap:4px;"><div style="font-size:15px; font-weight:600;">Iced Latte</div><div style="font-size:11px; font-weight:600; letter-spacing:1px; color:#00684A;">3 SIZES</div></div><div style="font-size:14px; color:#5C6C75;">from ₱120.00</div></div>
+            <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;"><div style="font-size:15px; font-weight:600;">Cappuccino</div><div style="font-size:14px; color:#5C6C75;">₱120.00</div></div>
+            <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;"><div style="font-size:15px; font-weight:600;">Spanish Latte</div><div style="font-size:14px; color:#5C6C75;">₱140.00</div></div>
+            <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;"><div style="display:flex; flex-direction:column; gap:4px;"><div style="font-size:15px; font-weight:600;">Pan de sal</div><div style="align-self:flex-start; padding:2px 8px; border-radius:9999px; background:#FFEC9E; color:#944F01; font-size:11px; font-weight:600;">LOW · 8 LEFT</div></div><div style="font-size:14px; color:#5C6C75;">₱12.00</div></div>
+            <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;"><div style="font-size:15px; font-weight:600;">Ensaymada</div><div style="font-size:14px; color:#5C6C75;">₱55.00</div></div>
+            <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;"><div style="font-size:15px; font-weight:600;">Cheese roll</div><div style="font-size:14px; color:#5C6C75;">₱40.00</div></div>
+            <div style="background:#F9FBFA; border:1px solid #E8EDEB; border-radius:12px; padding:14px; display:flex; flex-direction:column; justify-content:space-between; opacity:0.75;"><div style="display:flex; flex-direction:column; gap:4px;"><div style="font-size:15px; font-weight:600; color:#889397;">Ube loaf</div><div style="align-self:flex-start; padding:2px 8px; border-radius:9999px; background:#E8EDEB; color:#5C6C75; font-size:11px; font-weight:600;">OUT OF STOCK</div></div><div style="font-size:14px; color:#B8C4C2;">₱120.00</div></div>
+            <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;"><div style="font-size:15px; font-weight:600;">Coke 1.5L</div><div style="font-size:14px; color:#5C6C75;">₱98.00</div></div>
+            <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;"><div style="display:flex; flex-direction:column; gap:4px;"><div style="font-size:15px; font-weight:600;">Jasmine rice</div><div style="font-size:11px; font-weight:600; letter-spacing:1px; color:#5C6C75;">BY WEIGHT</div></div><div style="font-size:14px; color:#5C6C75;">₱95.00 / kg</div></div>
+            <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;"><div style="font-size:15px; font-weight:600;">Lucky Me pancit</div><div style="font-size:14px; color:#5C6C75;">₱15.00</div></div>
+            <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;"><div style="font-size:15px; font-weight:600;">Kopiko 3-in-1</div><div style="font-size:14px; color:#5C6C75;">₱9.00</div></div>
+          </div>
+        </div>
+        <div style="width:392px; flex:none; background:#FFFFFF; border-left:1px solid #E8EDEB; display:flex; flex-direction:column;">
+          <div style="padding:16px 20px; border-bottom:1px solid #E8EDEB; display:flex; align-items:center; gap:8px;">
+            <div style="font-size:16px; font-weight:600; flex:1;">Current sale</div>
+            <div style="padding:6px 14px; border-radius:9999px; border:1px solid #C1C7C6; font-size:13px; font-weight:600; color:#3D4F58;">Hold</div>
+            <div style="padding:6px 14px; border-radius:9999px; border:1px solid #C1C7C6; font-size:13px; font-weight:600; color:#3D4F58;">Held · 2</div>
+          </div>
+          <div style="padding:12px 20px; border-bottom:1px solid #E8EDEB; display:flex; gap:8px;">
+            <div style="padding:6px 14px; border-radius:9999px; background:#001E2B; color:#FFFFFF; font-size:13px; font-weight:600;">Dine-in</div>
+            <div style="padding:6px 14px; border-radius:9999px; border:1px solid #E8EDEB; color:#5C6C75; font-size:13px; font-weight:600;">Takeout</div>
+            <div style="padding:6px 14px; border-radius:9999px; border:1px solid #E8EDEB; color:#5C6C75; font-size:13px; font-weight:600;">None</div>
+          </div>
+          <div style="flex:1; overflow:hidden; display:flex; flex-direction:column; gap:0; padding:8px 0;">
+            <div style="padding:12px 20px; display:flex; flex-direction:column; gap:6px; border-bottom:1px solid #F1F4F3;">
+              <div style="display:flex; align-items:baseline; gap:8px;"><div style="font-size:15px; font-weight:600; flex:1;">Iced Latte — Large</div><div style="font-size:15px; font-weight:600; font-family:'Source Code Pro',monospace;">170.00</div></div>
+              <div style="font-size:13px; color:#5C6C75; padding-left:12px;">+ Oat milk (+₱25.00)</div>
+              <div style="display:flex; align-items:center; gap:10px;"><div style="display:flex; align-items:center; gap:0; border:1px solid #E8EDEB; border-radius:9999px;"><div style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#3D4F58;">−</div><div style="width:28px; text-align:center; font-size:14px; font-weight:600;">1</div><div style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#3D4F58;">+</div></div><div style="font-size:13px; color:#889397;">@ ₱145.00 + mods</div></div>
+            </div>
+            <div style="padding:12px 20px; display:flex; flex-direction:column; gap:6px; border-bottom:1px solid #F1F4F3;">
+              <div style="display:flex; align-items:baseline; gap:8px;"><div style="font-size:15px; font-weight:600; flex:1;">Pan de sal</div><div style="font-size:15px; font-weight:600; font-family:'Source Code Pro',monospace;">72.00</div></div>
+              <div style="display:flex; align-items:center; gap:10px;"><div style="display:flex; align-items:center; gap:0; border:1px solid #E8EDEB; border-radius:9999px;"><div style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#3D4F58;">−</div><div style="width:28px; text-align:center; font-size:14px; font-weight:600;">6</div><div style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#3D4F58;">+</div></div><div style="font-size:13px; color:#889397;">@ ₱12.00</div></div>
+            </div>
+            <div style="padding:12px 20px; display:flex; flex-direction:column; gap:6px; border-bottom:1px solid #F1F4F3;">
+              <div style="display:flex; align-items:baseline; gap:8px;"><div style="font-size:15px; font-weight:600; flex:1;">Ensaymada</div><div style="font-size:15px; font-weight:600; font-family:'Source Code Pro',monospace;">110.00</div></div>
+              <div style="display:flex; align-items:center; gap:10px;"><div style="display:flex; align-items:center; gap:0; border:1px solid #E8EDEB; border-radius:9999px;"><div style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#3D4F58;">−</div><div style="width:28px; text-align:center; font-size:14px; font-weight:600;">2</div><div style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#3D4F58;">+</div></div><div style="font-size:13px; color:#889397;">@ ₱55.00</div><div style="flex:1;"></div><div style="padding:2px 8px; border-radius:9999px; background:#E3FCF7; color:#00684A; font-size:11px; font-weight:600;">10% OFF · MERIENDA</div></div>
+            </div>
+            <div style="padding:12px 20px; display:flex; flex-direction:column; gap:6px;">
+              <div style="display:flex; align-items:baseline; gap:8px;"><div style="font-size:15px; font-weight:600; flex:1;">Jasmine rice</div><div style="font-size:15px; font-weight:600; font-family:'Source Code Pro',monospace;">71.25</div></div>
+              <div style="display:flex; align-items:center; gap:10px;"><div style="padding:5px 12px; border:1px solid #C1C7C6; border-radius:8px; font-size:14px; font-weight:600; font-family:'Source Code Pro',monospace;">0.750 kg</div><div style="font-size:13px; color:#889397;">@ ₱95.00 / kg</div></div>
+            </div>
+          </div>
+          <div style="border-top:1px solid #E8EDEB; padding:16px 20px; display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; font-size:14px; color:#5C6C75;"><div style="flex:1;">Subtotal</div><div style="font-family:'Source Code Pro',monospace;">434.25</div></div>
+            <div style="display:flex; font-size:14px; color:#00684A;"><div style="flex:1;">Merienda 10% (Ensaymada)</div><div style="font-family:'Source Code Pro',monospace;">−11.00</div></div>
+            <div style="display:flex; font-size:14px; color:#5C6C75;"><div style="flex:1;">Service charge 5%</div><div style="font-family:'Source Code Pro',monospace;">21.16</div></div>
+            <div style="display:flex; align-items:baseline;"><div style="flex:1; font-size:18px; font-weight:600;">Total</div><div style="font-size:26px; font-weight:700; font-family:'Source Code Pro',monospace;">₱444.41</div></div>
+            <div style="font-size:12px; color:#889397;">VAT included ₱47.62 · prices VAT-inclusive</div>
+            <div style="display:flex; gap:8px; padding-top:6px;">
+              <div style="padding:10px 16px; border-radius:9999px; border:1px solid #C1C7C6; font-size:14px; font-weight:600; color:#3D4F58;">Discount</div>
+              <div style="padding:10px 16px; border-radius:9999px; border:1px solid #C1C7C6; font-size:14px; font-weight:600; color:#3D4F58;">SC / PWD</div>
+              <div style="flex:1; height:44px; border-radius:9999px; background:#00ED64; color:#001E2B; font-size:15px; font-weight:600; display:flex; align-items:center; justify-content:center;">Charge ₱444.41</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 Modifier sheet -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#5C6C75;">04 · VARIANT + MODIFIER SHEET — enforces min/max select</div>
+    <div data-screen-label="04 Modifier Sheet" style="width:1194px; height:834px; background:#F9FBFA; border-radius:12px; box-shadow:rgba(0,30,43,0.12) 0px 12px 24px -4px; overflow:hidden; position:relative;">
+      <div style="position:absolute; inset:0; background:rgba(0,30,43,0.5);"></div>
+      <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+        <div style="background:#FFFFFF; border-radius:16px; width:560px; box-shadow:rgba(0,30,43,0.16) 0px 16px 48px -8px; display:flex; flex-direction:column;">
+          <div style="padding:24px 28px 16px; display:flex; align-items:baseline; gap:12px;">
+            <div style="font-size:22px; font-weight:600; flex:1;">Iced Latte</div>
+            <div style="font-size:14px; color:#889397;">SKU CF-102</div>
+          </div>
+          <div style="padding:0 28px 20px; display:flex; flex-direction:column; gap:10px;">
+            <div style="font-size:13px; font-weight:600; color:#5C6C75;">SIZE — CHOOSE 1</div>
+            <div style="display:flex; gap:8px;">
+              <div style="flex:1; padding:14px; border:1px solid #E8EDEB; border-radius:12px; display:flex; flex-direction:column; gap:2px;"><div style="font-size:15px; font-weight:600;">Small</div><div style="font-size:13px; color:#5C6C75;">₱120.00</div></div>
+              <div style="flex:1; padding:14px; border:1px solid #E8EDEB; border-radius:12px; display:flex; flex-direction:column; gap:2px;"><div style="font-size:15px; font-weight:600;">Medium</div><div style="font-size:13px; color:#5C6C75;">₱130.00</div></div>
+              <div style="flex:1; padding:14px; border:2px solid #00ED64; background:#E3FCF7; border-radius:12px; display:flex; flex-direction:column; gap:2px;"><div style="font-size:15px; font-weight:600;">Large</div><div style="font-size:13px; color:#00684A; font-weight:600;">₱145.00</div></div>
+            </div>
+          </div>
+          <div style="padding:0 28px 20px; display:flex; flex-direction:column; gap:10px;">
+            <div style="font-size:13px; font-weight:600; color:#5C6C75;">MILK — CHOOSE UP TO 1</div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <div style="padding:12px 16px; border:2px solid #00ED64; background:#E3FCF7; border-radius:12px; display:flex;"><div style="font-size:15px; font-weight:600; flex:1;">Oat milk</div><div style="font-size:14px; color:#00684A; font-weight:600;">+₱25.00</div></div>
+              <div style="padding:12px 16px; border:1px solid #E8EDEB; border-radius:12px; display:flex;"><div style="font-size:15px; font-weight:500; flex:1;">Fresh milk</div><div style="font-size:14px; color:#5C6C75;">+₱0.00</div></div>
+            </div>
+          </div>
+          <div style="padding:0 28px 20px; display:flex; flex-direction:column; gap:10px;">
+            <div style="font-size:13px; font-weight:600; color:#5C6C75;">ADD-ONS — UP TO 3</div>
+            <div style="display:flex; gap:8px;">
+              <div style="padding:10px 16px; border:1px solid #E8EDEB; border-radius:9999px; font-size:14px; font-weight:500;">Extra shot +₱30</div>
+              <div style="padding:10px 16px; border:1px solid #E8EDEB; border-radius:9999px; font-size:14px; font-weight:500;">Vanilla +₱15</div>
+              <div style="padding:10px 16px; border:1px solid #E8EDEB; border-radius:9999px; font-size:14px; font-weight:500;">Less ice</div>
+            </div>
+          </div>
+          <div style="padding:20px 28px; border-top:1px solid #E8EDEB; display:flex; gap:12px; align-items:center;">
+            <div style="display:flex; align-items:center; border:1px solid #C1C7C6; border-radius:9999px;"><div style="width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:18px; color:#3D4F58;">−</div><div style="width:32px; text-align:center; font-size:16px; font-weight:600;">1</div><div style="width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:18px; color:#3D4F58;">+</div></div>
+            <div style="flex:1;"></div>
+            <div style="padding:10px 22px; border-radius:9999px; border:1px solid #C1C7C6; font-size:14px; font-weight:600; color:#3D4F58;">Cancel</div>
+            <div style="padding:12px 26px; border-radius:9999px; background:#00ED64; color:#001E2B; font-size:14px; font-weight:600;">Add — ₱170.00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 Payment -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#5C6C75;">05 · PAYMENT — one method per sale, cash with quick tender</div>
+    <div data-screen-label="05 Payment" style="width:1194px; height:834px; background:#F9FBFA; border-radius:12px; box-shadow:rgba(0,30,43,0.12) 0px 12px 24px -4px; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="height:52px; background:#FFFFFF; border-bottom:1px solid #E8EDEB; display:flex; align-items:center; padding:0 20px; gap:16px; flex:none;">
+        <div style="font-size:15px; font-weight:600; color:#3D4F58;">← Back to sale</div>
+        <div style="flex:1;"></div>
+        <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#3D4F58;">MKT · T1</div>
+      </div>
+      <div style="flex:1; display:flex;">
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:28px;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <div style="font-size:14px; font-weight:600; color:#5C6C75; letter-spacing:1px;">AMOUNT DUE</div>
+            <div style="font-size:64px; font-weight:700; font-family:'Source Code Pro',monospace; letter-spacing:-1px;">₱444.41</div>
+            <div style="font-size:13px; color:#889397;">4 lines · dine-in · VAT included ₱47.62</div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <div style="padding:12px 24px; border-radius:9999px; background:#001E2B; color:#FFFFFF; font-size:14px; font-weight:600;">Cash</div>
+            <div style="padding:12px 24px; border-radius:9999px; border:1px solid #E8EDEB; background:#FFFFFF; color:#5C6C75; font-size:14px; font-weight:600;">Card</div>
+            <div style="padding:12px 24px; border-radius:9999px; border:1px solid #E8EDEB; background:#FFFFFF; color:#5C6C75; font-size:14px; font-weight:600;">GCash</div>
+            <div style="padding:12px 24px; border-radius:9999px; border:1px solid #E8EDEB; background:#FFFFFF; color:#5C6C75; font-size:14px; font-weight:600;">Maya</div>
+            <div style="padding:12px 24px; border-radius:9999px; border:1px solid #E8EDEB; background:#FFFFFF; color:#5C6C75; font-size:14px; font-weight:600;">Other</div>
+          </div>
+          <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:16px; padding:28px; width:520px; display:flex; flex-direction:column; gap:18px;">
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <div style="font-size:13px; font-weight:600;">Cash tendered</div>
+              <div style="height:60px; border:2px solid #00684A; border-radius:8px; display:flex; align-items:center; padding:0 18px; font-size:28px; font-weight:600; font-family:'Source Code Pro',monospace;">₱500.00</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <div style="flex:1; padding:10px 0; border-radius:9999px; border:1px solid #C1C7C6; text-align:center; font-size:14px; font-weight:600; color:#3D4F58;">Exact</div>
+              <div style="flex:1; padding:10px 0; border-radius:9999px; border:1px solid #C1C7C6; text-align:center; font-size:14px; font-weight:600; color:#3D4F58;">₱100</div>
+              <div style="flex:1; padding:10px 0; border-radius:9999px; border:1px solid #C1C7C6; text-align:center; font-size:14px; font-weight:600; color:#3D4F58;">₱200</div>
+              <div style="flex:1; padding:10px 0; border-radius:9999px; background:#001E2B; color:#FFFFFF; text-align:center; font-size:14px; font-weight:600;">₱500</div>
+              <div style="flex:1; padding:10px 0; border-radius:9999px; border:1px solid #C1C7C6; text-align:center; font-size:14px; font-weight:600; color:#3D4F58;">₱1000</div>
+            </div>
+            <div style="display:flex; align-items:baseline; background:#E3FCF7; border-radius:12px; padding:14px 18px;">
+              <div style="flex:1; font-size:15px; font-weight:600; color:#00684A;">Change</div>
+              <div style="font-size:28px; font-weight:700; font-family:'Source Code Pro',monospace; color:#00684A;">₱55.59</div>
+            </div>
+            <div style="height:52px; border-radius:9999px; background:#00ED64; color:#001E2B; font-size:15px; font-weight:600; display:flex; align-items:center; justify-content:center;">Complete sale</div>
+          </div>
+        </div>
+        <div style="width:340px; flex:none; background:#FFFFFF; border-left:1px solid #E8EDEB; padding:24px; display:flex; flex-direction:column; gap:10px;">
+          <div style="font-size:14px; font-weight:600; color:#5C6C75; letter-spacing:1px;">ORDER</div>
+          <div style="display:flex; font-size:14px;"><div style="flex:1;">1 × Iced Latte — Large, oat</div><div style="font-family:'Source Code Pro',monospace;">170.00</div></div>
+          <div style="display:flex; font-size:14px;"><div style="flex:1;">6 × Pan de sal</div><div style="font-family:'Source Code Pro',monospace;">72.00</div></div>
+          <div style="display:flex; font-size:14px;"><div style="flex:1;">2 × Ensaymada</div><div style="font-family:'Source Code Pro',monospace;">110.00</div></div>
+          <div style="display:flex; font-size:14px;"><div style="flex:1;">0.750 kg Jasmine rice</div><div style="font-family:'Source Code Pro',monospace;">71.25</div></div>
+          <div style="border-top:1px solid #E8EDEB; margin-top:8px; padding-top:12px; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; font-size:13px; color:#5C6C75;"><div style="flex:1;">Discounts</div><div style="font-family:'Source Code Pro',monospace;">−11.00</div></div>
+            <div style="display:flex; font-size:13px; color:#5C6C75;"><div style="flex:1;">Service charge</div><div style="font-family:'Source Code Pro',monospace;">21.16</div></div>
+            <div style="display:flex; font-size:16px; font-weight:600;"><div style="flex:1;">Total</div><div style="font-family:'Source Code Pro',monospace;">₱444.41</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 Receipt -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#5C6C75;">06 · RECEIPT — business branding only, print optional ({{ paperLabel }} preview)</div>
+    <div data-screen-label="06 Receipt" style="width:1194px; height:834px; background:#F9FBFA; border-radius:12px; box-shadow:rgba(0,30,43,0.12) 0px 12px 24px -4px; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="height:52px; background:#FFFFFF; border-bottom:1px solid #E8EDEB; display:flex; align-items:center; padding:0 20px; gap:16px; flex:none;">
+        <div style="display:flex; align-items:center; gap:8px;"><div style="width:22px; height:22px; border-radius:9999px; background:#00ED64; color:#001E2B; font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center;">✓</div><div style="font-size:15px; font-weight:600;">Sale completed — MKT-T1-000318</div></div>
+        <div style="flex:1;"></div>
+        <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#3D4F58;">MKT · T1</div>
+      </div>
+      <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:48px;">
+        <div style="width:{{ paperPx }}px; background:#FFFFFF; box-shadow:rgba(0,30,43,0.08) 0px 4px 12px 0px; padding:24px 20px; font-family:'Source Code Pro',monospace; font-size:12px; line-height:1.55; color:#001E2B; display:flex; flex-direction:column; gap:12px;">
+          <div style="text-align:center; display:flex; flex-direction:column; gap:2px;">
+            <div style="font-weight:600; font-size:14px;">KAPE DIARIA</div>
+            <div>Marikit Branch</div>
+            <div>123 Gen. Ordoñez Ave, Marikina</div>
+            <div>TIN 123-456-789-000</div>
+          </div>
+          <div style="border-top:1px dashed #C1C7C6; padding-top:10px; display:flex; flex-direction:column; gap:2px;">
+            <div style="display:flex;"><div style="flex:1;">Receipt</div><div>MKT-T1-000318</div></div>
+            <div style="display:flex;"><div style="flex:1;">Date</div><div>19 Aug 2026 10:42</div></div>
+            <div style="display:flex;"><div style="flex:1;">Terminal</div><div>MKT · T1</div></div>
+          </div>
+          <div style="border-top:1px dashed #C1C7C6; padding-top:10px; display:flex; flex-direction:column; gap:3px;">
+            <div style="display:flex;"><div style="flex:1;">Iced Latte Large 1×170.00</div><div>170.00</div></div>
+            <div style="padding-left:10px; color:#3D4F58;">+ Oat milk 25.00</div>
+            <div style="display:flex;"><div style="flex:1;">Pan de sal 6×12.00</div><div>72.00</div></div>
+            <div style="display:flex;"><div style="flex:1;">Ensaymada 2×55.00</div><div>110.00</div></div>
+            <div style="padding-left:10px; color:#3D4F58;">Merienda 10% −11.00</div>
+            <div style="display:flex;"><div style="flex:1;">Jasmine rice 0.750×95.00</div><div>71.25</div></div>
+          </div>
+          <div style="border-top:1px dashed #C1C7C6; padding-top:10px; display:flex; flex-direction:column; gap:2px;">
+            <div style="display:flex;"><div style="flex:1;">Subtotal</div><div>434.25</div></div>
+            <div style="display:flex;"><div style="flex:1;">Discounts</div><div>-11.00</div></div>
+            <div style="display:flex;"><div style="flex:1;">Service charge 5%</div><div>21.16</div></div>
+            <div style="display:flex; font-weight:600; font-size:14px;"><div style="flex:1;">TOTAL</div><div>444.41</div></div>
+            <div style="display:flex;"><div style="flex:1;">Cash</div><div>500.00</div></div>
+            <div style="display:flex;"><div style="flex:1;">Change</div><div>55.59</div></div>
+          </div>
+          <div style="border-top:1px dashed #C1C7C6; padding-top:10px; display:flex; flex-direction:column; gap:2px;">
+            <div style="display:flex;"><div style="flex:1;">VATable sales</div><div>396.79</div></div>
+            <div style="display:flex;"><div style="flex:1;">VAT-exempt sales</div><div>0.00</div></div>
+            <div style="display:flex;"><div style="flex:1;">VAT 12% (included)</div><div>47.62</div></div>
+          </div>
+          <div style="text-align:center; border-top:1px dashed #C1C7C6; padding-top:10px;">Salamat po! Ingat!</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px; width:280px;">
+          <div style="height:52px; border-radius:9999px; background:#00ED64; color:#001E2B; font-size:15px; font-weight:600; display:flex; align-items:center; justify-content:center;">Print receipt</div>
+          <div style="height:52px; border-radius:9999px; border:1px solid #C1C7C6; color:#001E2B; font-size:15px; font-weight:600; display:flex; align-items:center; justify-content:center;">Done — new sale</div>
+          <div style="font-size:13px; color:#889397; text-align:center;">Printing is optional per sale. Reprints from Sale Detail are stamped REPRINT.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 07 History -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#5C6C75;">07 · SALES HISTORY — this terminal, newest first</div>
+    <div data-screen-label="07 Sales History" style="width:1194px; height:834px; background:#F9FBFA; border-radius:12px; box-shadow:rgba(0,30,43,0.12) 0px 12px 24px -4px; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="height:52px; background:#FFFFFF; border-bottom:1px solid #E8EDEB; display:flex; align-items:center; padding:0 20px; gap:20px; flex:none;">
+        <img src="brand/sentry-mark.svg" alt="" style="height:24px; width:24px;">
+        <div style="display:flex; gap:4px;">
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Sale</div>
+          <div style="padding:6px 16px; border-radius:9999px; background:#001E2B; color:#FFFFFF; font-size:13px; font-weight:600;">History</div>
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Shift</div>
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Stock</div>
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Settings</div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#3D4F58;">MKT · T1</div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:#00684A;"><div style="width:8px; height:8px; border-radius:9999px; background:#00ED64;"></div>Online</div>
+      </div>
+      <div style="padding:20px 24px; display:flex; gap:8px; align-items:center;">
+        <div style="padding:8px 16px; border-radius:9999px; background:#001E2B; color:#FFFFFF; font-size:13px; font-weight:600;">Today</div>
+        <div style="padding:8px 16px; border-radius:9999px; border:1px solid #E8EDEB; background:#FFFFFF; color:#5C6C75; font-size:13px; font-weight:600;">Pick a date</div>
+        <div style="flex:1;"></div>
+        <div style="font-size:14px; color:#5C6C75;">38 sales · ₱18,240.50 · 1 void · 1 refund</div>
+      </div>
+      <div style="flex:1; padding:0 24px 24px; display:flex; flex-direction:column; gap:8px; overflow:hidden;">
+        <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px 20px; display:flex; align-items:center; gap:16px;">
+          <div style="font-family:'Source Code Pro',monospace; font-size:14px; font-weight:600; width:150px;">MKT-T1-000318</div>
+          <div style="font-size:14px; color:#5C6C75; width:70px;">10:42</div>
+          <div style="font-size:14px; color:#3D4F58; flex:1;">4 lines · dine-in · cash</div>
+          <div style="padding:3px 10px; border-radius:9999px; background:#E3FCF7; color:#00684A; font-size:11px; font-weight:600;">COMPLETED</div>
+          <div style="font-family:'Source Code Pro',monospace; font-size:15px; font-weight:600; width:100px; text-align:right;">₱444.41</div>
+        </div>
+        <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px 20px; display:flex; align-items:center; gap:16px;">
+          <div style="font-family:'Source Code Pro',monospace; font-size:14px; font-weight:600; width:150px;">MKT-T1-000317</div>
+          <div style="font-size:14px; color:#5C6C75; width:70px;">10:31</div>
+          <div style="font-size:14px; color:#3D4F58; flex:1;">2 lines · takeout · GCash · ref 1029-3847</div>
+          <div style="padding:3px 10px; border-radius:9999px; background:#E3FCF7; color:#00684A; font-size:11px; font-weight:600;">COMPLETED</div>
+          <div style="font-family:'Source Code Pro',monospace; font-size:15px; font-weight:600; width:100px; text-align:right;">₱230.00</div>
+        </div>
+        <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px 20px; display:flex; align-items:center; gap:16px;">
+          <div style="font-family:'Source Code Pro',monospace; font-size:14px; font-weight:600; width:150px; color:#889397;">MKT-T1-000316</div>
+          <div style="font-size:14px; color:#5C6C75; width:70px;">10:18</div>
+          <div style="font-size:14px; color:#3D4F58; flex:1;">1 line · none · cash · "double tap"</div>
+          <div style="padding:3px 10px; border-radius:9999px; background:#FFEC9E; color:#944F01; font-size:11px; font-weight:600;">VOIDED</div>
+          <div style="font-family:'Source Code Pro',monospace; font-size:15px; font-weight:600; width:100px; text-align:right; color:#889397; text-decoration:line-through;">₱85.00</div>
+        </div>
+        <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px 20px; display:flex; align-items:center; gap:16px;">
+          <div style="font-family:'Source Code Pro',monospace; font-size:14px; font-weight:600; width:150px;">MKT-T1-000315</div>
+          <div style="font-size:14px; color:#5C6C75; width:70px;">10:04</div>
+          <div style="font-size:14px; color:#3D4F58; flex:1;">6 lines · dine-in · card</div>
+          <div style="padding:3px 10px; border-radius:9999px; background:#E3FCF7; color:#00684A; font-size:11px; font-weight:600;">COMPLETED</div>
+          <div style="font-family:'Source Code Pro',monospace; font-size:15px; font-weight:600; width:100px; text-align:right;">₱1,120.75</div>
+        </div>
+        <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px 20px; display:flex; align-items:center; gap:16px;">
+          <div style="font-family:'Source Code Pro',monospace; font-size:14px; font-weight:600; width:150px; color:#889397;">MKT-T1-000311</div>
+          <div style="font-size:14px; color:#5C6C75; width:70px;">09:22</div>
+          <div style="font-size:14px; color:#3D4F58; flex:1;">3 lines · takeout · cash · "wrong size served" · PIN ✓</div>
+          <div style="padding:3px 10px; border-radius:9999px; background:#FBE9E9; color:#B1371F; font-size:11px; font-weight:600;">REFUNDED</div>
+          <div style="font-family:'Source Code Pro',monospace; font-size:15px; font-weight:600; width:100px; text-align:right; color:#B1371F;">−₱310.00</div>
+        </div>
+        <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:14px 20px; display:flex; align-items:center; gap:16px;">
+          <div style="font-family:'Source Code Pro',monospace; font-size:14px; font-weight:600; width:150px;">MKT-T1-000310</div>
+          <div style="font-size:14px; color:#5C6C75; width:70px;">09:15</div>
+          <div style="font-size:14px; color:#3D4F58; flex:1;">1 line · none · cash · SC/PWD</div>
+          <div style="padding:3px 10px; border-radius:9999px; background:#E3FCF7; color:#00684A; font-size:11px; font-weight:600;">COMPLETED</div>
+          <div style="font-family:'Source Code Pro',monospace; font-size:15px; font-weight:600; width:100px; text-align:right;">₱100.00</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 08 Sale detail + refund PIN -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#5C6C75;">08 · SALE DETAIL + REFUND PIN GATE — BO PIN, full amount only</div>
+    <div data-screen-label="08 Refund PIN" style="width:1194px; height:834px; background:#F9FBFA; border-radius:12px; box-shadow:rgba(0,30,43,0.12) 0px 12px 24px -4px; overflow:hidden; position:relative;">
+      <div style="position:absolute; inset:0; display:flex; flex-direction:column;">
+        <div style="height:52px; background:#FFFFFF; border-bottom:1px solid #E8EDEB; display:flex; align-items:center; padding:0 20px; gap:16px; flex:none;">
+          <div style="font-size:15px; font-weight:600; color:#3D4F58;">← History</div>
+          <div style="font-family:'Source Code Pro',monospace; font-size:15px; font-weight:600;">MKT-T1-000315</div>
+          <div style="padding:3px 10px; border-radius:9999px; background:#E3FCF7; color:#00684A; font-size:11px; font-weight:600;">COMPLETED</div>
+          <div style="flex:1;"></div>
+          <div style="padding:8px 18px; border-radius:9999px; border:1px solid #C1C7C6; font-size:13px; font-weight:600; color:#3D4F58;">Reprint</div>
+          <div style="padding:8px 18px; border-radius:9999px; border:1px solid #C1C7C6; font-size:13px; font-weight:600; color:#B1371F;">Refund…</div>
+        </div>
+        <div style="flex:1; padding:24px; display:flex; gap:24px;">
+          <div style="flex:1; background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:24px;"></div>
+        </div>
+      </div>
+      <div style="position:absolute; inset:0; background:rgba(0,30,43,0.5);"></div>
+      <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+        <div style="background:#FFFFFF; border-radius:16px; width:420px; box-shadow:rgba(0,30,43,0.16) 0px 16px 48px -8px; padding:32px; display:flex; flex-direction:column; gap:20px;">
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <div style="font-size:20px; font-weight:600;">Refund MKT-T1-000315</div>
+            <div style="font-size:14px; color:#5C6C75;">Full amount ₱1,120.75 · stock returns automatically. This shift's expected cash is reduced.</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:13px; font-weight:600;">Reason</div>
+            <div style="height:44px; border:1px solid #C1C7C6; border-radius:8px; display:flex; align-items:center; padding:0 14px; font-size:15px;">Customer returned order</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+            <div style="font-size:13px; font-weight:600; color:#5C6C75;">ENTER OWNER PIN</div>
+            <div style="display:flex; gap:10px;">
+              <div style="width:14px; height:14px; border-radius:9999px; background:#001E2B;"></div>
+              <div style="width:14px; height:14px; border-radius:9999px; background:#001E2B;"></div>
+              <div style="width:14px; height:14px; border-radius:9999px; background:#001E2B;"></div>
+              <div style="width:14px; height:14px; border-radius:9999px; background:#001E2B;"></div>
+              <div style="width:14px; height:14px; border-radius:9999px; border:1px solid #C1C7C6;"></div>
+              <div style="width:14px; height:14px; border-radius:9999px; border:1px solid #C1C7C6;"></div>
+            </div>
+            <div style="font-size:12px; color:#889397;">Failed attempts are logged and throttled.</div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <div style="flex:1; height:44px; border-radius:9999px; border:1px solid #C1C7C6; font-size:14px; font-weight:600; color:#3D4F58; display:flex; align-items:center; justify-content:center;">Cancel</div>
+            <div style="flex:1; height:44px; border-radius:9999px; background:#B1371F; color:#FFFFFF; font-size:14px; font-weight:600; display:flex; align-items:center; justify-content:center;">Refund ₱1,120.75</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 09 Shift -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#5C6C75;">09 · SHIFT — running X totals, cash in/out, close with over/short + Z report</div>
+    <div data-screen-label="09 Shift" style="width:1194px; height:834px; background:#F9FBFA; border-radius:12px; box-shadow:rgba(0,30,43,0.12) 0px 12px 24px -4px; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="height:52px; background:#FFFFFF; border-bottom:1px solid #E8EDEB; display:flex; align-items:center; padding:0 20px; gap:20px; flex:none;">
+        <img src="brand/sentry-mark.svg" alt="" style="height:24px; width:24px;">
+        <div style="display:flex; gap:4px;">
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Sale</div>
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">History</div>
+          <div style="padding:6px 16px; border-radius:9999px; background:#001E2B; color:#FFFFFF; font-size:13px; font-weight:600;">Shift</div>
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Stock</div>
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Settings</div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#3D4F58;">MKT · T1</div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:#00684A;"><div style="width:8px; height:8px; border-radius:9999px; background:#00ED64;"></div>Shift open · 7:02 AM</div>
+      </div>
+      <div style="background:#FFEC9E; padding:10px 24px; font-size:13px; font-weight:600; color:#944F01; display:flex; align-items:center; gap:8px;">⚠ The business day ended at 04:00 with this shift still open. Close it when the drawer is counted — shifts never auto-close.</div>
+      <div style="flex:1; padding:24px; display:flex; gap:24px; min-height:0;">
+        <div style="flex:1; display:flex; flex-direction:column; gap:16px;">
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">
+            <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:18px; display:flex; flex-direction:column; gap:4px;"><div style="font-size:12px; font-weight:600; color:#5C6C75; letter-spacing:1px;">GROSS SALES</div><div style="font-size:24px; font-weight:700; font-family:'Source Code Pro',monospace;">₱18,240.50</div><div style="font-size:12px; color:#889397;">38 sales</div></div>
+            <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:18px; display:flex; flex-direction:column; gap:4px;"><div style="font-size:12px; font-weight:600; color:#5C6C75; letter-spacing:1px;">CASH SALES</div><div style="font-size:24px; font-weight:700; font-family:'Source Code Pro',monospace;">₱12,485.25</div><div style="font-size:12px; color:#889397;">card 3,240.25 · gcash 2,515.00</div></div>
+            <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:18px; display:flex; flex-direction:column; gap:4px;"><div style="font-size:12px; font-weight:600; color:#5C6C75; letter-spacing:1px;">VOIDS / REFUNDS</div><div style="font-size:24px; font-weight:700; font-family:'Source Code Pro',monospace;">1 / 1</div><div style="font-size:12px; color:#889397;">−₱395.00 total</div></div>
+          </div>
+          <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; align-items:center;"><div style="font-size:15px; font-weight:600; flex:1;">Cash movements</div><div style="display:flex; gap:8px;"><div style="padding:6px 14px; border-radius:9999px; border:1px solid #C1C7C6; font-size:13px; font-weight:600; color:#3D4F58;">+ Cash in</div><div style="padding:6px 14px; border-radius:9999px; border:1px solid #C1C7C6; font-size:13px; font-weight:600; color:#3D4F58;">− Cash out</div></div></div>
+            <div style="display:flex; font-size:14px; gap:12px;"><div style="width:60px; color:#5C6C75;">08:10</div><div style="flex:1;">Cash in — change fund from safe</div><div style="font-family:'Source Code Pro',monospace; color:#00684A;">+1,000.00</div></div>
+            <div style="display:flex; font-size:14px; gap:12px;"><div style="width:60px; color:#5C6C75;">09:40</div><div style="flex:1;">Cash out — LPG delivery paid from drawer</div><div style="font-family:'Source Code Pro',monospace; color:#B1371F;">−750.00</div></div>
+          </div>
+          <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:12px;">
+            <div style="font-size:15px; font-weight:600;">Close shift</div>
+            <div style="font-size:13px; color:#944F01; background:#FFEC9E; border-radius:8px; padding:8px 12px;">2 held carts must be completed or discarded before closing.</div>
+            <div style="display:flex; gap:16px; align-items:flex-end;">
+              <div style="flex:1; display:flex; flex-direction:column; gap:6px;"><div style="font-size:13px; font-weight:600;">Counted cash</div><div style="height:48px; border:2px solid #00684A; border-radius:8px; display:flex; align-items:center; padding:0 14px; font-size:20px; font-weight:600; font-family:'Source Code Pro',monospace;">₱14,700.00</div></div>
+              <div style="flex:1; display:flex; flex-direction:column; gap:2px;"><div style="font-size:13px; color:#5C6C75;">Expected: 2,000 + 12,485.25 − 310.00 + 1,000 − 750</div><div style="font-size:18px; font-weight:600; font-family:'Source Code Pro',monospace;">₱14,425.25</div></div>
+              <div style="display:flex; flex-direction:column; gap:2px; align-items:flex-end;"><div style="font-size:13px; color:#5C6C75;">Over / short</div><div style="padding:4px 12px; border-radius:9999px; background:#E3FCF7; color:#00684A; font-size:16px; font-weight:700; font-family:'Source Code Pro',monospace;">+274.75</div></div>
+              <div style="height:48px; padding:0 26px; border-radius:9999px; background:#00ED64; color:#001E2B; font-size:14px; font-weight:600; display:flex; align-items:center;">Close & print Z</div>
+            </div>
+          </div>
+        </div>
+        <div style="width:320px; flex:none; background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:20px; font-family:'Source Code Pro',monospace; font-size:12px; line-height:1.6; display:flex; flex-direction:column; gap:10px;">
+          <div style="font-family:'Figtree',sans-serif; font-size:13px; font-weight:600; color:#5C6C75; letter-spacing:1px;">Z REPORT PREVIEW</div>
+          <div style="display:flex;"><div style="flex:1;">Shift</div><div>MKT-T1 · 19 Aug</div></div>
+          <div style="display:flex;"><div style="flex:1;">Opened</div><div>07:02</div></div>
+          <div style="border-top:1px dashed #C1C7C6; padding-top:8px; display:flex; flex-direction:column; gap:2px;">
+            <div style="display:flex;"><div style="flex:1;">Cash</div><div>12,485.25</div></div>
+            <div style="display:flex;"><div style="flex:1;">Card</div><div>3,240.25</div></div>
+            <div style="display:flex;"><div style="flex:1;">GCash</div><div>2,515.00</div></div>
+            <div style="display:flex;"><div style="flex:1;">Maya</div><div>0.00</div></div>
+            <div style="display:flex; font-weight:600;"><div style="flex:1;">Gross</div><div>18,240.50</div></div>
+          </div>
+          <div style="border-top:1px dashed #C1C7C6; padding-top:8px; display:flex; flex-direction:column; gap:2px;">
+            <div style="display:flex;"><div style="flex:1;">Sales</div><div>38</div></div>
+            <div style="display:flex;"><div style="flex:1;">Voids</div><div>1 (85.00)</div></div>
+            <div style="display:flex;"><div style="flex:1;">Refunds</div><div>1 (310.00)</div></div>
+            <div style="display:flex;"><div style="flex:1;">SC/PWD disc.</div><div>96.43</div></div>
+            <div style="display:flex;"><div style="flex:1;">Service charge</div><div>412.30</div></div>
+          </div>
+          <div style="border-top:1px dashed #C1C7C6; padding-top:8px; display:flex; flex-direction:column; gap:2px;">
+            <div style="display:flex;"><div style="flex:1;">Opening float</div><div>2,000.00</div></div>
+            <div style="display:flex;"><div style="flex:1;">Cash in/out</div><div>+250.00</div></div>
+            <div style="display:flex;"><div style="flex:1;">Expected</div><div>14,425.25</div></div>
+            <div style="display:flex;"><div style="flex:1;">Counted</div><div>14,700.00</div></div>
+            <div style="display:flex; font-weight:600;"><div style="flex:1;">Over/short</div><div>+274.75</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 Stock -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#5C6C75;">10 · STOCK + QUICK ADJUST — the sanctioned zero-stock escape hatch, audit-logged</div>
+    <div data-screen-label="10 Stock Adjust" style="width:1194px; height:834px; background:#F9FBFA; border-radius:12px; box-shadow:rgba(0,30,43,0.12) 0px 12px 24px -4px; overflow:hidden; position:relative;">
+      <div style="position:absolute; inset:0; display:flex; flex-direction:column;">
+        <div style="height:52px; background:#FFFFFF; border-bottom:1px solid #E8EDEB; display:flex; align-items:center; padding:0 20px; gap:20px; flex:none;">
+          <img src="brand/sentry-mark.svg" alt="" style="height:24px; width:24px;">
+          <div style="display:flex; gap:4px;">
+            <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Sale</div>
+            <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">History</div>
+            <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Shift</div>
+            <div style="padding:6px 16px; border-radius:9999px; background:#001E2B; color:#FFFFFF; font-size:13px; font-weight:600;">Stock</div>
+            <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Settings</div>
+          </div>
+          <div style="flex:1;"></div>
+          <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#3D4F58;">MKT · T1</div>
+        </div>
+        <div style="flex:1; padding:24px; display:flex; flex-direction:column; gap:8px;">
+          <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:12px 20px; display:flex; align-items:center; gap:16px;"><div style="font-size:14px; font-weight:600; flex:1;">Pan de sal</div><div style="padding:2px 8px; border-radius:9999px; background:#FFEC9E; color:#944F01; font-size:11px; font-weight:600;">LOW</div><div style="font-family:'Source Code Pro',monospace; font-size:14px; width:90px; text-align:right;">8</div><div style="font-size:13px; color:#00684A; font-weight:600;">Adjust</div></div>
+          <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:12px 20px; display:flex; align-items:center; gap:16px;"><div style="font-size:14px; font-weight:600; flex:1;">Ube loaf</div><div style="padding:2px 8px; border-radius:9999px; background:#E8EDEB; color:#5C6C75; font-size:11px; font-weight:600;">OUT</div><div style="font-family:'Source Code Pro',monospace; font-size:14px; width:90px; text-align:right;">0</div><div style="font-size:13px; color:#00684A; font-weight:600;">Adjust</div></div>
+          <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:12px 20px; display:flex; align-items:center; gap:16px;"><div style="font-size:14px; font-weight:600; flex:1;">Coke 1.5L</div><div style="font-family:'Source Code Pro',monospace; font-size:14px; width:90px; text-align:right;">46</div><div style="font-size:13px; color:#00684A; font-weight:600;">Adjust</div></div>
+          <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:12px 20px; display:flex; align-items:center; gap:16px;"><div style="font-size:14px; font-weight:600; flex:1;">Jasmine rice (kg)</div><div style="font-family:'Source Code Pro',monospace; font-size:14px; width:90px; text-align:right;">23.450</div><div style="font-size:13px; color:#00684A; font-weight:600;">Adjust</div></div>
+        </div>
+      </div>
+      <div style="position:absolute; inset:0; background:rgba(0,30,43,0.5);"></div>
+      <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+        <div style="background:#FFFFFF; border-radius:16px; width:480px; box-shadow:rgba(0,30,43,0.16) 0px 16px 48px -8px; padding:32px; display:flex; flex-direction:column; gap:20px;">
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <div style="font-size:20px; font-weight:600;">Adjust stock — Ube loaf</div>
+            <div style="font-size:14px; color:#5C6C75;">System says 0. Posted as an adjustment event with who and why — this is audit-logged.</div>
+          </div>
+          <div style="display:flex; gap:16px; align-items:center;">
+            <div style="display:flex; flex-direction:column; gap:6px; flex:1;"><div style="font-size:13px; font-weight:600;">New quantity</div><div style="height:48px; border:2px solid #00684A; border-radius:8px; display:flex; align-items:center; padding:0 14px; font-size:20px; font-weight:600; font-family:'Source Code Pro',monospace;">2</div></div>
+            <div style="font-size:14px; color:#5C6C75; padding-top:20px;">Δ +2</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:13px; font-weight:600;">Reason</div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+              <div style="padding:8px 16px; border-radius:9999px; border:1px solid #E8EDEB; font-size:13px; font-weight:600; color:#5C6C75;">Damage</div>
+              <div style="padding:8px 16px; border-radius:9999px; border:1px solid #E8EDEB; font-size:13px; font-weight:600; color:#5C6C75;">Expiry</div>
+              <div style="padding:8px 16px; border-radius:9999px; border:1px solid #E8EDEB; font-size:13px; font-weight:600; color:#5C6C75;">Theft / loss</div>
+              <div style="padding:8px 16px; border-radius:9999px; background:#001E2B; color:#FFFFFF; font-size:13px; font-weight:600;">Count correction</div>
+              <div style="padding:8px 16px; border-radius:9999px; border:1px solid #E8EDEB; font-size:13px; font-weight:600; color:#5C6C75;">Other</div>
+            </div>
+          </div>
+          <div style="height:44px; border:1px solid #C1C7C6; border-radius:8px; display:flex; align-items:center; padding:0 14px; font-size:14px; color:#889397;">Note (optional) — "found 2 in the back chiller"</div>
+          <div style="display:flex; gap:10px;">
+            <div style="flex:1; height:44px; border-radius:9999px; border:1px solid #C1C7C6; font-size:14px; font-weight:600; color:#3D4F58; display:flex; align-items:center; justify-content:center;">Cancel</div>
+            <div style="flex:1; height:44px; border-radius:9999px; background:#00ED64; color:#001E2B; font-size:14px; font-weight:600; display:flex; align-items:center; justify-content:center;">Post adjustment</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11 Settings -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#5C6C75;">11 · SETTINGS — paper width, test print, unpair (BO re-auth)</div>
+    <div data-screen-label="11 Settings" style="width:1194px; height:834px; background:#F9FBFA; border-radius:12px; box-shadow:rgba(0,30,43,0.12) 0px 12px 24px -4px; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="height:52px; background:#FFFFFF; border-bottom:1px solid #E8EDEB; display:flex; align-items:center; padding:0 20px; gap:20px; flex:none;">
+        <img src="brand/sentry-mark.svg" alt="" style="height:24px; width:24px;">
+        <div style="display:flex; gap:4px;">
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Sale</div>
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">History</div>
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Shift</div>
+          <div style="padding:6px 16px; border-radius:9999px; color:#5C6C75; font-size:13px; font-weight:600;">Stock</div>
+          <div style="padding:6px 16px; border-radius:9999px; background:#001E2B; color:#FFFFFF; font-size:13px; font-weight:600;">Settings</div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="font-family:'Source Code Pro',monospace; font-size:13px; font-weight:600; color:#3D4F58;">MKT · T1</div>
+      </div>
+      <div style="flex:1; padding:24px; display:flex; flex-direction:column; gap:12px; max-width:720px;">
+        <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:20px; display:flex; align-items:center; gap:16px;">
+          <div style="flex:1; display:flex; flex-direction:column; gap:2px;"><div style="font-size:15px; font-weight:600;">Receipt paper width</div><div style="font-size:13px; color:#5C6C75;">Sets the print stylesheet</div></div>
+          <div style="display:flex; gap:6px;">
+            <div style="padding:8px 18px; border-radius:9999px; border:1px solid #E8EDEB; font-size:13px; font-weight:600; color:#5C6C75;">58 mm</div>
+            <div style="padding:8px 18px; border-radius:9999px; background:#001E2B; color:#FFFFFF; font-size:13px; font-weight:600;">80 mm</div>
+          </div>
+          <div style="padding:8px 18px; border-radius:9999px; border:1px solid #C1C7C6; font-size:13px; font-weight:600; color:#3D4F58;">Test print</div>
+        </div>
+        <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:20px; display:flex; align-items:center; gap:16px;">
+          <div style="flex:1; display:flex; flex-direction:column; gap:2px;"><div style="font-size:15px; font-weight:600;">Receipt preview</div><div style="font-size:13px; color:#5C6C75;">Header, footer, and TIN come from the portal's business settings</div></div>
+          <div style="padding:8px 18px; border-radius:9999px; border:1px solid #C1C7C6; font-size:13px; font-weight:600; color:#3D4F58;">Preview</div>
+        </div>
+        <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:20px; display:flex; align-items:center; gap:16px;">
+          <div style="flex:1; display:flex; flex-direction:column; gap:2px;"><div style="font-size:15px; font-weight:600;">Connection</div><div style="font-size:13px; color:#5C6C75;">Online · API reachable · last catalog load 10:40</div></div>
+          <div style="padding:3px 10px; border-radius:9999px; background:#E3FCF7; color:#00684A; font-size:11px; font-weight:600;">HEALTHY</div>
+        </div>
+        <div style="background:#FFFFFF; border:1px solid #E8EDEB; border-radius:12px; padding:20px; display:flex; align-items:center; gap:16px;">
+          <div style="flex:1; display:flex; flex-direction:column; gap:2px;"><div style="font-size:15px; font-weight:600;">Paired to Kape Diaria — Marikit (MKT), Counter 1</div><div style="font-size:13px; color:#5C6C75;">Unpairing requires the owner to sign in. The owner can also unpair remotely from the portal.</div></div>
+          <div style="padding:8px 18px; border-radius:9999px; border:1px solid #B1371F; font-size:13px; font-weight:600; color:#B1371F;">Unpair…</div>
+        </div>
+        <div style="font-size:13px; color:#889397; padding:0 4px;">Sentry POS v0.9.2 · refund PIN is managed in the owner portal</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;demoMode&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Terminal&quot;},&quot;paperWidth&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;58&quot;,&quot;80&quot;],&quot;default&quot;:&quot;80&quot;,&quot;tsType&quot;:&quot;'58'|'80'&quot;,&quot;section&quot;:&quot;Terminal&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const paper = this.props.paperWidth ?? '80';
+    return {
+      demoMode: this.props.demoMode ?? false,
+      paperPx: paper === '58' ? 240 : 320,
+      paperLabel: paper + 'mm'
+    };
+  }
+}
+</script>
+</body>
+</html>
