@@ -6,7 +6,9 @@ import { getApi } from "@/api";
 import type { CompletedSale, SaleSummary } from "@/api/types";
 import { TopBar } from "@/components/chrome/TopBar";
 import { SaleDetail } from "@/components/history/SaleDetail";
+import { RefundDialog } from "@/components/history/RefundDialog";
 import { SaleRow } from "@/components/history/SaleRow";
+import { VoidDialog } from "@/components/history/VoidDialog";
 import { Button } from "@/components/ui/button";
 import { formatPeso } from "@/lib/money";
 import { manilaDateKey, nowIso } from "@/lib/time";
@@ -28,6 +30,8 @@ export default function HistoryPage() {
   const [date, setDate] = useState<string | null>(today);
   const [sales, setSales] = useState<SaleSummary[]>([]);
   const [selected, setSelected] = useState<CompletedSale | null>(null);
+  const [voidOpen, setVoidOpen] = useState(false);
+  const [refundOpen, setRefundOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -54,7 +58,32 @@ export default function HistoryPage() {
       <TopBar active="history" />
 
       {selected ? (
-        <SaleDetail sale={selected} onBack={() => setSelected(null)} />
+        <>
+          <SaleDetail
+            sale={selected}
+            onBack={() => setSelected(null)}
+            onVoid={() => setVoidOpen(true)}
+            onRefund={() => setRefundOpen(true)}
+          />
+          <VoidDialog
+            sale={selected}
+            open={voidOpen}
+            onClose={() => setVoidOpen(false)}
+            onDone={(updated) => {
+              setSelected(updated);
+              void load();
+            }}
+          />
+          <RefundDialog
+            sale={selected}
+            open={refundOpen}
+            onClose={() => setRefundOpen(false)}
+            onDone={(updated) => {
+              setSelected(updated);
+              void load();
+            }}
+          />
+        </>
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2 px-6 py-5">
