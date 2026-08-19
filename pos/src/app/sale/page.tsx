@@ -8,6 +8,8 @@ import { CartPane } from "@/components/sale/CartPane";
 import { ALL_CATEGORIES, CategoryTabs } from "@/components/sale/CategoryTabs";
 import { ProductGrid } from "@/components/sale/ProductGrid";
 import { DiscountPicker, type DiscountTarget } from "@/components/sale/DiscountPicker";
+import { HeldCartsSheet } from "@/components/sale/HeldCartsSheet";
+import { HoldDialog } from "@/components/sale/HoldDialog";
 import { MiscItemModal } from "@/components/sale/MiscItemModal";
 import { ScPwdModal } from "@/components/sale/ScPwdModal";
 import { SearchBar } from "@/components/sale/SearchBar";
@@ -28,6 +30,8 @@ export default function SalePage() {
   const [miscOpen, setMiscOpen] = useState(false);
   const [discountTarget, setDiscountTarget] = useState<DiscountTarget | null>(null);
   const [scPwdOpen, setScPwdOpen] = useState(false);
+  const [holdOpen, setHoldOpen] = useState(false);
+  const [heldListOpen, setHeldListOpen] = useState(false);
   const [weightFor, setWeightFor] = useState<{ product: Product; lineId: string | null; qty?: number } | null>(null);
 
   const business = catalog?.business ?? null;
@@ -95,8 +99,8 @@ export default function SalePage() {
             onDiscount={() => setDiscountTarget({ kind: "order" })}
             onLineDiscount={(lineId) => setDiscountTarget({ kind: "line", lineId })}
             onScPwd={() => setScPwdOpen(true)}
-            onHold={() => undefined}
-            onHeldList={() => undefined}
+            onHold={() => setHoldOpen(true)}
+            onHeldList={() => setHeldListOpen(true)}
             onEditWeight={editLineWeight}
           />
         </aside>
@@ -105,6 +109,8 @@ export default function SalePage() {
       <VariantModifierSheet product={sheetProduct} onClose={() => setSheetProduct(null)} />
       <MiscItemModal open={miscOpen} onClose={() => setMiscOpen(false)} />
       <ScPwdModal open={scPwdOpen} onClose={() => setScPwdOpen(false)} />
+      <HoldDialog open={holdOpen} onClose={() => setHoldOpen(false)} />
+      <HeldCartsSheet open={heldListOpen} onClose={() => setHeldListOpen(false)} />
       {discountTarget && (
         <DiscountPicker target={discountTarget} open onClose={() => setDiscountTarget(null)} />
       )}
