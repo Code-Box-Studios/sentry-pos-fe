@@ -35,6 +35,7 @@ export function CartPane({
   const business = useCatalogStore((s) => s.catalog?.business ?? null);
   const cart = useCartStore((s) => s.cart);
   const heldCarts = useCartStore((s) => s.heldCarts);
+  const conflictLineIds = useCartStore((s) => s.conflictLineIds);
   const setOrderType = useCartStore((s) => s.setOrderType);
   const setQty = useCartStore((s) => s.setQty);
   const removeLine = useCartStore((s) => s.removeLine);
@@ -88,6 +89,7 @@ export function CartPane({
               line={line}
               totals={totals.lines.find((l) => l.lineId === line.id)}
               scPwdActive={cart.scPwd !== null}
+              conflicted={conflictLineIds.includes(line.id)}
               onSetQty={(qty) => setQty(line.id, qty)}
               onRemove={() => removeLine(line.id)}
               onEditWeight={() => onEditWeight(line.id)}

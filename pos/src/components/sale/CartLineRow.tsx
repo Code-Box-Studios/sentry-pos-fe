@@ -5,6 +5,7 @@ import type { CartLine } from "@/domain/cart";
 import type { LineTotals } from "@/domain/totals";
 import { formatC, formatPeso } from "@/lib/money";
 import { formatQty } from "@/lib/qty";
+import { cn } from "@/lib/utils";
 import { discountBadgeLabel } from "./discountLabel";
 
 function Stepper({ qty, onChange }: { qty: number; onChange(next: number): void }) {
@@ -35,6 +36,7 @@ export function CartLineRow({
   line,
   totals,
   scPwdActive,
+  conflicted = false,
   onSetQty,
   onRemove,
   onEditWeight,
@@ -44,6 +46,7 @@ export function CartLineRow({
   line: CartLine;
   totals: LineTotals | undefined;
   scPwdActive: boolean;
+  conflicted?: boolean;
   onSetQty(qty: number): void;
   onRemove(): void;
   onEditWeight(): void;
@@ -53,7 +56,12 @@ export function CartLineRow({
   const hasMods = line.modifiers.length > 0;
 
   return (
-    <div className="flex flex-col gap-1.5 border-b border-hairline-soft px-5 py-3 last:border-b-0">
+    <div
+      className={cn(
+        "flex flex-col gap-1.5 border-b border-hairline-soft px-5 py-3 last:border-b-0",
+        conflicted && "border border-danger bg-danger-bg"
+      )}
+    >
       <div className="flex items-baseline gap-2">
         <div className="flex-1 text-[15px] font-semibold text-ink">{line.name}</div>
         <div className="font-mono text-[15px] font-semibold text-ink">{formatC(totals?.netC ?? 0)}</div>
@@ -111,6 +119,10 @@ export function CartLineRow({
           </button>
         )}
       </div>
+
+      {conflicted && (
+        <p className="text-[13px] font-semibold text-danger">stock changed — adjust or remove</p>
+      )}
     </div>
   );
 }
