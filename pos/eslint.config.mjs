@@ -12,6 +12,16 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    rules: {
+      // Contract implementations keep parameters they don't read (PosApi methods, event handlers);
+      // an underscore prefix is the deliberate marker for that.
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
+      ],
+    },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",
