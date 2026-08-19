@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sentry POS — terminal app
 
-## Getting Started
+The owner-operated point-of-sale terminal: pair a device to one branch, open a shift, sell, take
+payment, print a receipt, and close the drawer with a Z reading. Built as a **fully static Next.js
+export** — no server rendering, no route handlers — so the offline milestone can bolt on cleanly.
 
-First, run the development server:
+Screens and behaviour are specified in [`../pos-spec.md`](../pos-spec.md); money, tenancy and sync
+rules live in [`../project-spec.md`](../project-spec.md); the visual language is
+[`../design-spec.md`](../design-spec.md), with a pixel reference for all 11 screens in
+[`../design/pos-terminal.dc.html`](../design/pos-terminal.dc.html) (tablet landscape, 1194×834).
+
+## Getting started
+
+This project uses **pnpm**. On a machine where the standalone `pnpm` binary is blocked (Windows
+Device Guard, for instance), run it through corepack: `corepack pnpm <command>`.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev        # http://localhost:3000
+pnpm test       # vitest, single run
+pnpm test:watch
+pnpm lint
+pnpm build      # static export into out/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Serve the export with any static file server: `npx serve out`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Mock mode
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+There is no backend yet. `NEXT_PUBLIC_API_MODE=mock` (see `.env.example`) selects `MockPosApi`, a
+complete in-browser implementation of the `PosApi` contract that persists to localStorage, so every
+flow — pairing, shifts, sales, voids, refunds, stock — works end to end today.
 
-## Learn More
+| What | Value |
+| --- | --- |
+| Owner email | `maria@kapediaria.ph` |
+| Owner password | `sentry-demo` |
+| Refund PIN | `123456` |
+| Sample tenant | Kape Diaria (mixed café + retail), branches Marikit `MKT` and Bayanihan `BYN` |
 
-To learn more about Next.js, take a look at the following resources:
+Mock data lives under the localStorage key `sentry-pos:mock:v1`; clear site data to reset to seed.
+Four wrong refund PINs lock the terminal for five minutes, exactly as the real API will.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### The API seam
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`src/api/client.ts` defines `PosApi` — the single interface every screen talks to, obtained through
+`getApi()`. When `sentry-pos-be` ships, an HTTP adapter (over an openapi-typescript client) joins
+`src/api/` alongside the mock and `NEXT_PUBLIC_API_MODE` picks between them. **Nothing outside
+`src/api/` changes.**
 
-## Deploy on Vercel
+## Architecture
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+src/
+  lib/         pure helpers — money (integer centavos), qty, uuid, time (UTC ⇄ Asia/Manila),
+               barcode wedge buffer, day boundary, media queries, API error handling
+  domain/      types, cart model, and the totals engine (VAT, SC/PWD, service charge)
+  api/         PosApi contract, error taxonomy, and the localStorage-backed mock adapter
+  state/       zustand stores — pairing, settings, catalog, cart, shift, last sale
+  components/  chrome · numpad · sale · payment · receipt · history · shift · stock · settings
+  app/         one route per screen, every one a client component
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Rules worth knowing before you change anything
+
+- **All money is integer centavos**, and variables carrying it end in `C` (`unitPriceC`). Round
+  half-up at every money-producing step, per line, then sum — never round a precise grand total.
+- **Prices are VAT-inclusive.** SC/PWD takes VAT off first, then 20%; a line takes SC/PWD *or* a
+  promo discount, whichever is higher, never both.
+- **Price locks at add-to-cart.** A catalog change never touches a cart in progress.
+- **Receipt numbers are terminal-owned** (`MKT-T1-000318`). The payment screen *peeks* the number and
+  only commits it after the sale succeeds, so a failed attempt never burns one.
+- **Receipts carry the business's branding only — never Sentry's.**
+- Timestamps are stored UTC and displayed Asia/Manila.
+
+The design mock's screen 03/05/06 arithmetic is off by ₱11 (a double-counted discount). The specs
+win: for that basket the subtotal is 423.25 and the total 432.86, which is what the tests assert.
+
+## Tests
+
+Vitest with jsdom and Testing Library. The domain layer (money, totals, cart, mock adapter) is
+TDD'd; the screens are covered through user-visible behaviour rather than implementation details.
+
+```bash
+pnpm test
+```
+
+## Not here yet
+
+The offline layer (Dexie mirror, service worker, sync queue), the owner portal, split payments,
+partial refunds, and staff accounts. See `pos-spec.md` §12 for the full non-goals list.
