@@ -404,10 +404,11 @@ export class MockPosApi implements PosApi {
   async listSales(filter: { date: string | null }): Promise<SaleSummary[]> {
     const s = await this.enterPaired();
     return s.sales
-      .filter((sale) => filter.date === null || manilaDateKey(sale.createdAt) === filter.date)
-      .slice()
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      .map((sale) => ({
+      .map((sale, index) => ({ sale, index }))
+      .filter(({ sale }) => filter.date === null || manilaDateKey(sale.createdAt) === filter.date)
+      // Sales inside the same millisecond fall back to append order, newest last written first.
+      .sort((a, b) => b.sale.createdAt.localeCompare(a.sale.createdAt) || b.index - a.index)
+      .map(({ sale }) => ({
         id: sale.id,
         receiptNo: sale.receiptNo,
         createdAt: sale.createdAt,
