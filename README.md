@@ -28,13 +28,21 @@ file.
 
 The two apps deploy to separate subdomains (`pos.` and the apex / `app.`, per [`project-spec.md`](project-spec.md) §12), so each gets its own fixed dev port — they are different servers, not one site.
 
-## Working on the POS app
+## Running everything
 
 ```bash
-cd pos
-pnpm install
-pnpm dev
+pnpm install:all      # once — root, then pos/ and portal/
+pnpm db:up            # Postgres, needed by portal/ only
+pnpm dev              # both apps, prefixed output, Ctrl-C stops both
 ```
+
+`pnpm dev` runs the two apps side by side on their fixed ports. They stay separate installs with
+separate lockfiles — the root package.json exists only to hold this script, which is why both Next
+configs pin `outputFileTracingRoot` to their own directory.
+
+To run one on its own, use `pnpm dev:pos` / `pnpm dev:portal`, or `cd` into either and `pnpm dev`.
+
+## Working on the POS app
 
 Sign in with `maria@kapediaria.ph` / `sentry-demo`; the refund PIN is `123456`. Everything is backed
 by an in-browser mock until `sentry-pos-be` exists — the POS app needs no database and no Docker.

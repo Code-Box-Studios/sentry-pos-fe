@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { CountUp } from "../CountUp";
+import { DEMO_LINE_COUNT, DEMO_TOTAL } from "./demo-cart";
 import { DayBars, Heatmap, StatusDot, WindowDots } from "./parts";
 
 const NAV = ["Dashboard", "Analytics", "Catalog", "Stock", "Terminals", "Activity log"];
@@ -153,8 +154,8 @@ export function PortalDashboard() {
           <div className="font-mono text-[10px] font-semibold text-steel">POS · MKT · T1</div>
         </div>
         <div className="flex items-baseline">
-          <div className="flex-1 text-[11px] text-steel">4 lines · dine-in</div>
-          <div className="font-mono text-[17px] font-bold">₱444.41</div>
+          <div className="flex-1 text-[11px] text-steel">{DEMO_LINE_COUNT} lines · dine-in</div>
+          <div className="font-mono text-[17px] font-bold">{DEMO_TOTAL}</div>
         </div>
         <div className="bg-brand-green text-ink flex h-[30px] items-center justify-center rounded-full text-[11px] font-semibold">
           Charge

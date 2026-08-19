@@ -124,7 +124,7 @@ export const LandingContent: GlobalConfig = {
                       "Scrolls under the hero. Sample events, written the way the activity log writes them.",
                   },
                   defaultValue: [
-                    { text: "MKT · T1 rang ₱444.41 — just now" },
+                    { text: "MKT · T1 rang ₱432.86 — just now" },
                     { text: "low stock: Pan de sal at Marikit" },
                     { text: "transfer: 24 × Coke 1.5L → Bayanihan" },
                     { text: "BYN · T1 shift opened 07:00" },

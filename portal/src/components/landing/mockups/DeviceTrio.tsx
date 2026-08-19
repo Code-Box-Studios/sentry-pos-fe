@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Reveal } from "../Reveal";
+import { DEMO_LINES, DEMO_TOTAL } from "./demo-cart";
 import { DayBars, Heatmap, StatusDot } from "./parts";
 
 const TILES = [
@@ -9,13 +10,6 @@ const TILES = [
   { name: "Pan de sal", price: "₱12.00", badge: "LOW · 8" },
   { name: "Jasmine rice", price: "₱95 / kg" },
   { name: "Ube loaf", price: "₱120.00", out: true },
-];
-
-const CART = [
-  { text: "1 × Iced Latte — L, oat", amount: "170.00" },
-  { text: "6 × Pan de sal", amount: "72.00" },
-  { text: "0.750 kg Jasmine rice", amount: "71.25" },
-  { text: "Merienda 10%", amount: "−11.00", discount: true },
 ];
 
 // Four weeks. -1 is a day that has not happened yet; 6 is the brand green at the top of the ramp.
@@ -159,22 +153,22 @@ export function DeviceTrio() {
                   Takeout
                 </span>
               </div>
-              {CART.map((line) => (
+              {DEMO_LINES.map((line) => (
                 <div
                   key={line.text}
-                  className={`flex text-[8px] ${line.discount ? "text-brand-green-dark" : ""}`}
+                  className={`flex gap-1 text-[8px] ${line.discount ? "text-brand-green-dark" : ""}`}
                 >
-                  <span className="flex-1">{line.text}</span>
+                  <span className="flex-1">{line.short ?? line.text}</span>
                   <span className="font-mono">{line.amount}</span>
                 </div>
               ))}
               <div className="flex-1" />
               <div className="border-hairline-soft flex items-baseline border-t pt-1.5">
                 <div className="flex-1 text-[9px] font-semibold">Total</div>
-                <div className="font-mono text-[13px] font-bold">₱444.41</div>
+                <div className="font-mono text-[13px] font-bold">{DEMO_TOTAL}</div>
               </div>
-              <div className="bg-brand-green text-ink flex h-[22px] items-center justify-center rounded-full text-[8px] font-semibold">
-                Charge ₱444.41
+              <div className="bg-brand-green text-ink flex h-[22px] items-center justify-center rounded-full text-[8px] font-semibold whitespace-nowrap">
+                Charge {DEMO_TOTAL}
               </div>
             </div>
           </div>

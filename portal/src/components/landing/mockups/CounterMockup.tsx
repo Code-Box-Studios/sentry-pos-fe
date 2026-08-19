@@ -1,4 +1,5 @@
 import { Reveal } from "../Reveal";
+import { DEMO_LINES, DEMO_TOTAL, DEMO_VAT_INCLUDED } from "./demo-cart";
 
 const CHIPS = ["All", "Drinks", "Grocery"];
 
@@ -7,12 +8,6 @@ const TILES = [
   { name: "Coke 1.5L", note: "₱98.00" },
   { name: "Jasmine rice", note: "₱95.00 / kg" },
   { name: "Pan de sal", low: "LOW · 8" },
-];
-
-const LINES = [
-  { text: "1 × Iced Latte — Large, oat", amount: "170.00", delay: 160 },
-  { text: "0.750 kg Jasmine rice", amount: "71.25", delay: 260 },
-  { text: "Merienda 10%", amount: "−11.00", delay: 360, discount: true },
 ];
 
 /** The terminal mid-sale: the catalogue grid on the left, the running cart on the right. */
@@ -58,10 +53,10 @@ export function CounterMockup() {
       <div className="border-hairline bg-canvas flex flex-1 flex-col gap-2 rounded-xl border p-3.5">
         <div className="text-xs font-semibold">Current sale</div>
 
-        {LINES.map((line) => (
+        {DEMO_LINES.map((line, i) => (
           <Reveal
             key={line.text}
-            delay={line.delay}
+            delay={160 + i * 70}
             className={`flex text-[11px] ${line.discount ? "text-brand-green-dark" : ""}`}
           >
             <span className="flex-1">{line.text}</span>
@@ -69,13 +64,13 @@ export function CounterMockup() {
           </Reveal>
         ))}
 
-        <div className="min-h-4 flex-1" />
+        <div className="min-h-2 flex-1" />
 
         <div className="border-hairline-soft flex items-baseline border-t pt-2">
           <div className="flex-1 text-xs font-semibold">Total</div>
-          <div className="font-mono text-base font-bold">₱444.41</div>
+          <div className="font-mono text-base font-bold">{DEMO_TOTAL}</div>
         </div>
-        <div className="text-[9px] text-stone">VAT included ₱47.62</div>
+        <div className="text-[9px] text-stone">VAT included {DEMO_VAT_INCLUDED}</div>
 
         <div className="bg-brand-green text-ink relative flex h-[30px] items-center justify-center overflow-hidden rounded-full text-[11px] font-semibold">
           <span
