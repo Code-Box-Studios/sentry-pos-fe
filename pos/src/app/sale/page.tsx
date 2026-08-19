@@ -14,6 +14,7 @@ import { MiscItemModal } from "@/components/sale/MiscItemModal";
 import { ScPwdModal } from "@/components/sale/ScPwdModal";
 import { SearchBar } from "@/components/sale/SearchBar";
 import { VariantModifierSheet } from "@/components/sale/VariantModifierSheet";
+import { useBarcodeWedge } from "@/components/sale/useBarcodeWedge";
 import { WeightModal } from "@/components/sale/WeightModal";
 import type { Product } from "@/domain/types";
 import { useCatalogStore } from "@/state/catalog";
@@ -56,6 +57,25 @@ export default function SalePage() {
     }
     withStockToast(product.name, () => addProduct(product));
   }
+
+  // An exact barcode match adds instantly; scanning again just stacks the same line.
+  function handleScan(code: string) {
+    for (const product of catalog?.products ?? []) {
+      const variant = product.variants.find((v) => v.barcode === code);
+      if (variant) {
+        withStockToast(product.name, () => addProduct(product, { variantId: variant.id }));
+        return;
+      }
+      if (product.barcode === code) {
+        if (product.soldBy === "weight") setWeightFor({ product, lineId: null });
+        else withStockToast(product.name, () => addProduct(product));
+        return;
+      }
+    }
+    toast.error(`No product for ${code}`);
+  }
+
+  useBarcodeWedge(handleScan);
 
   function editLineWeight(lineId: string) {
     const line = useCartStore.getState().cart.lines.find((l) => l.id === lineId);
