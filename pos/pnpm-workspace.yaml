@@ -1,0 +1,7 @@
+# esbuild and unrs-resolver unpack native binaries in a postinstall script; vitest and the Next
+# ESLint resolver fail to load without them. sharp stays unbuilt — this app is a static export with
+# unoptimized images.
+allowBuilds:
+  esbuild: true
+  sharp: false
+  unrs-resolver: true
