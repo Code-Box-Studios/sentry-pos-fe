@@ -7,7 +7,9 @@ import { TopBar } from "@/components/chrome/TopBar";
 import { CartPane } from "@/components/sale/CartPane";
 import { ALL_CATEGORIES, CategoryTabs } from "@/components/sale/CategoryTabs";
 import { ProductGrid } from "@/components/sale/ProductGrid";
+import { DiscountPicker, type DiscountTarget } from "@/components/sale/DiscountPicker";
 import { MiscItemModal } from "@/components/sale/MiscItemModal";
+import { ScPwdModal } from "@/components/sale/ScPwdModal";
 import { SearchBar } from "@/components/sale/SearchBar";
 import { VariantModifierSheet } from "@/components/sale/VariantModifierSheet";
 import { WeightModal } from "@/components/sale/WeightModal";
@@ -24,6 +26,8 @@ export default function SalePage() {
   const [search, setSearch] = useState("");
   const [sheetProduct, setSheetProduct] = useState<Product | null>(null);
   const [miscOpen, setMiscOpen] = useState(false);
+  const [discountTarget, setDiscountTarget] = useState<DiscountTarget | null>(null);
+  const [scPwdOpen, setScPwdOpen] = useState(false);
   const [weightFor, setWeightFor] = useState<{ product: Product; lineId: string | null; qty?: number } | null>(null);
 
   const business = catalog?.business ?? null;
@@ -88,9 +92,9 @@ export default function SalePage() {
         <aside className="hidden w-[392px] flex-none border-l border-hairline md:block">
           <CartPane
             onCharge={() => router.push("/payment")}
-            onDiscount={() => undefined}
-            onLineDiscount={() => undefined}
-            onScPwd={() => undefined}
+            onDiscount={() => setDiscountTarget({ kind: "order" })}
+            onLineDiscount={(lineId) => setDiscountTarget({ kind: "line", lineId })}
+            onScPwd={() => setScPwdOpen(true)}
             onHold={() => undefined}
             onHeldList={() => undefined}
             onEditWeight={editLineWeight}
@@ -100,6 +104,10 @@ export default function SalePage() {
 
       <VariantModifierSheet product={sheetProduct} onClose={() => setSheetProduct(null)} />
       <MiscItemModal open={miscOpen} onClose={() => setMiscOpen(false)} />
+      <ScPwdModal open={scPwdOpen} onClose={() => setScPwdOpen(false)} />
+      {discountTarget && (
+        <DiscountPicker target={discountTarget} open onClose={() => setDiscountTarget(null)} />
+      )}
 
       <WeightModal
         product={weightFor?.product ?? null}
