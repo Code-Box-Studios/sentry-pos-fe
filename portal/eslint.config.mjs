@@ -15,9 +15,12 @@ const eslintConfig = [
     ignores: [
       "node_modules/**",
       ".next/**",
-      "out/**",
       "build/**",
       "next-env.d.ts",
+      // Payload writes these; their shape is not ours to lint.
+      "src/migrations/**",
+      "src/payload-types.ts",
+      "src/app/(payload)/cms/importMap.js",
     ],
   },
 ];
