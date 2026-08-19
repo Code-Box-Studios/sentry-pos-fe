@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { Shift } from "@/api/types";
 import { formatManilaTime12 } from "@/lib/time";
 import { cn } from "@/lib/utils";
+import { useShiftStore } from "@/state/shift";
 
 function Chip({ tone, label }: { tone: "green" | "amber"; label: string }) {
   return (
@@ -20,7 +21,10 @@ function Chip({ tone, label }: { tone: "green" | "amber"; label: string }) {
 }
 
 /** The persistent status strip: shift state and connection (pos-spec §10). */
-export function StatusChips({ shift = null }: { shift?: Shift | null }) {
+export function StatusChips({ shift }: { shift?: Shift | null }) {
+  // Omitting the prop reads the live shift; passing one (tests, previews) wins.
+  const storeShift = useShiftStore((s) => s.shift);
+  const current = shift === undefined ? storeShift : shift;
   // Starts optimistic so the prerendered HTML and the first client frame agree.
   const [online, setOnline] = useState(true);
 
@@ -37,8 +41,8 @@ export function StatusChips({ shift = null }: { shift?: Shift | null }) {
 
   return (
     <>
-      {shift ? (
-        <Chip tone="green" label={`Shift open · ${formatManilaTime12(shift.openedAt)}`} />
+      {current ? (
+        <Chip tone="green" label={`Shift open · ${formatManilaTime12(current.openedAt)}`} />
       ) : (
         <Chip tone="amber" label="No shift open" />
       )}
