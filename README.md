@@ -4,13 +4,13 @@ Front-end workspace for **Sentry**, a point-of-sale system for Philippine small 
 
 ## Layout
 
-| Path | What it is |
-| --- | --- |
-| [`pos/`](pos/) | The POS terminal app — static Next.js export, running today against a mock API. See [`pos/README.md`](pos/README.md). |
-| `portal/` | The business-owner portal. Not started. |
-| [`design/`](design/) | `pos-terminal.dc.html` — pixel reference for all 11 POS screens at tablet landscape. |
-| [`brand/`](brand/) | Sentry logo marks and lockups. |
-| [`docs/`](docs/) | Implementation plans. |
+| Path | What it is | Dev port |
+| --- | --- | --- |
+| [`pos/`](pos/) | The POS terminal app — static Next.js export, running today against a mock API. See [`pos/README.md`](pos/README.md). | 3000 |
+| [`portal/`](portal/) | The landing page and, later, the owner portal. Hosts the Payload CMS. See [`portal/README.md`](portal/README.md). | 3100 |
+| [`design/`](design/) | `pos-terminal.dc.html` — pixel reference for all 11 POS screens at tablet landscape. | — |
+| [`brand/`](brand/) | Sentry logo marks and lockups. | — |
+| [`docs/`](docs/) | Implementation plans. | — |
 
 ## Specs
 
@@ -25,6 +25,8 @@ file.
 | [`staff-spec.md`](staff-spec.md) | Staff accounts and roles (a later phase) |
 | [`analytics-spec.md`](analytics-spec.md) | Portal analytics and reporting |
 | [`landing-spec.md`](landing-spec.md) | Marketing site |
+
+The two apps deploy to separate subdomains (`pos.` and the apex / `app.`, per [`project-spec.md`](project-spec.md) §12), so each gets its own fixed dev port — they are different servers, not one site.
 
 ## Working on the POS app
 
