@@ -176,6 +176,22 @@ describe("error mapping", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
     await expect(makeApi().pullCatalog()).rejects.toBeInstanceOf(NetworkError);
   });
+
+  test("a navigator without an onLine property still makes the request (node env)", async () => {
+    // Node's `navigator` global has no `onLine`; a truthiness guard would break the
+    // integration suite in Task 4. Missing property must NOT read as offline.
+    vi.stubGlobal("navigator", {});
+    const spy = stubFetch(jsonResponse(200, []));
+    await expect(makeApi().getStockLevels()).resolves.toEqual([]);
+    expect(spy).toHaveBeenCalled();
+  });
+
+  test("an explicitly offline navigator short-circuits before fetch", async () => {
+    vi.stubGlobal("navigator", { onLine: false });
+    const spy = stubFetch(jsonResponse(200, []));
+    await expect(makeApi().getStockLevels()).rejects.toBeInstanceOf(NetworkError);
+    expect(spy).not.toHaveBeenCalled();
+  });
 });
 ```
 
@@ -247,7 +263,9 @@ export class HttpPosApi implements PosApi {
   constructor(private readonly opts: HttpPosApiOptions) {}
 
   private async request<T>(path: string, init: RequestOpts = {}): Promise<T> {
-    if (typeof navigator !== "undefined" && !navigator.onLine) throw new NetworkError();
+    // `=== false` deliberately: Node exposes a `navigator` global with no `onLine` property,
+    // so a truthiness check would fail every request in the node-env integration suite.
+    if (typeof navigator !== "undefined" && navigator.onLine === false) throw new NetworkError();
     const token = init.token === undefined ? this.opts.getDeviceToken() : init.token;
     const headers: Record<string, string> = {};
     if (token) headers.Authorization = `Bearer ${token}`;
@@ -331,7 +349,7 @@ Note: `errors.ts` exports `StockConflict` as an interface — the `type` keyword
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `pnpm vitest run src/api/http/adapter.test.ts`
-Expected: PASS (14 tests).
+Expected: PASS (16 tests).
 
 - [ ] **Step 5: Full suite + lint, then commit**
 
@@ -409,7 +427,7 @@ describe("apiTarget", () => {
 });
 ```
 
-(Vitest does not load Next's `.env.local`, so the "default" tests see the env vars as undefined regardless of what Step 4 puts there.)
+(Verified empirically 2026-08-27: vitest does NOT load Next's `.env.local` into `process.env` — a probe test read `undefined` for both vars while `.env.local` set `NEXT_PUBLIC_API_MODE=mock`. So the "default" tests see them unset regardless of what Step 4 writes, and flipping `.env.local` to http mode cannot disturb the existing suite.)
 
 - [ ] **Step 2: Run the test to verify it fails**
 
