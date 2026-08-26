@@ -64,6 +64,11 @@ test("the header names the pairing and the version", async () => {
   expect(await screen.findByText("HEALTHY")).toBeInTheDocument();
 });
 
+test("the connection card names the API target", async () => {
+  render(<SettingsPage />);
+  expect(await screen.findByText(/API mock ·/)).toBeInTheDocument();
+});
+
 test("the receipt preview shows a sample at business branding only", async () => {
   const user = userEvent.setup();
   render(<SettingsPage />);

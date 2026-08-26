@@ -25,11 +25,14 @@ pnpm build      # static export into out/
 
 Serve the export with any static file server: `npx serve out`.
 
-## Mock mode
+## API modes
 
-There is no backend yet. `NEXT_PUBLIC_API_MODE=mock` (see `.env.example`) selects `MockPosApi`, a
-complete in-browser implementation of the `PosApi` contract that persists to localStorage, so every
-flow — pairing, shifts, sales, voids, refunds, stock — works end to end today.
+`NEXT_PUBLIC_API_MODE` (see `.env.example`) picks the adapter behind `getApi()`. `mock` (the
+default) selects `MockPosApi`, a complete in-browser implementation of the `PosApi` contract that
+persists to localStorage. `http` selects `HttpPosApi`, which talks to a running
+[`sentry-pos-be`](https://github.com/Code-Box-Studios/sentry-pos-be) at `NEXT_PUBLIC_API_URL`
+(dev default `http://localhost:4000/v1`). The identities below work in both modes — the backend's
+dev seed is mock-parity by design.
 
 | What | Value |
 | --- | --- |
@@ -39,14 +42,17 @@ flow — pairing, shifts, sales, voids, refunds, stock — works end to end toda
 | Sample tenant | Kape Diaria (mixed café + retail), branches Marikit `MKT` and Bayanihan `BYN` |
 
 Mock data lives under the localStorage key `sentry-pos:mock:v1`; clear site data to reset to seed.
-Four wrong refund PINs lock the terminal for five minutes, exactly as the real API will.
+Four wrong refund PINs lock the terminal for five minutes, exactly as the real API does.
 
 ### The API seam
 
 `src/api/client.ts` defines `PosApi` — the single interface every screen talks to, obtained through
-`getApi()`. When `sentry-pos-be` ships, an HTTP adapter (over an openapi-typescript client) joins
-`src/api/` alongside the mock and `NEXT_PUBLIC_API_MODE` picks between them. **Nothing outside
-`src/api/` changes.**
+`getApi()`. Two adapters implement it: `src/api/mock/` (localStorage-backed) and `src/api/http/`
+(fetch against `sentry-pos-be`'s `/v1` surface — device token read from the pairing store, the
+`{ code, message }` error envelope mapped onto `src/api/errors.ts`). Both recompute and reject
+tampered totals. `src/test/integration/live-api.test.ts` proves the two totals engines agree:
+`pnpm test:integration` with `POS_E2E_API_URL` set (see the workspace README). **Nothing outside
+`src/api/` changes when switching modes.**
 
 ## Architecture
 

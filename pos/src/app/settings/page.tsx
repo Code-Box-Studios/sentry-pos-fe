@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getApi } from "@/api";
+import { apiTarget, getApi } from "@/api";
 import { TopBar } from "@/components/chrome/TopBar";
 import { ReceiptView } from "@/components/receipt/ReceiptView";
 import { SAMPLE_SALE } from "@/components/receipt/sampleSale";
@@ -98,7 +98,7 @@ export default function SettingsPage() {
           title="Connection"
           description={`${healthy === false ? "Offline" : "Online"} · ${
             healthy === false ? "API unreachable" : "API reachable"
-          } · last catalog load ${loadedAt}`}
+          } · API ${apiTarget()} · last catalog load ${loadedAt}`}
         >
           <Badge variant={healthy === false ? "warn" : "soft-green"}>
             {healthy === false ? "UNREACHABLE" : "HEALTHY"}
