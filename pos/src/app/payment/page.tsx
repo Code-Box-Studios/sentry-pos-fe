@@ -15,7 +15,6 @@ import type { PaymentMethod } from "@/domain/types";
 import { handleApiError } from "@/lib/handle-api-error";
 import { formatPeso } from "@/lib/money";
 import { nowIso } from "@/lib/time";
-import { newId } from "@/lib/uuid";
 import { useCartStore } from "@/state/cart";
 import { useCatalogStore } from "@/state/catalog";
 import { useLastSaleStore } from "@/state/lastSale";
@@ -55,8 +54,12 @@ export default function PaymentPage() {
     const pairing = usePairingStore.getState();
     const tendered = method === "cash" ? tenderedC ?? 0 : totals.totalC;
 
+    // Stable across retries: a timeout-after-commit replays server-side (same sale id → the
+    // stored sale comes back) instead of colliding on the receipt number.
+    const { saleId, paymentId } = useCartStore.getState().ensurePendingIds();
+
     const draft: SaleDraft = {
-      id: newId(),
+      id: saleId,
       // Peek, never consume: a failed attempt must not burn a receipt number.
       receiptNo: pairing.peekReceiptNo(),
       shiftId: shift.id,
@@ -66,7 +69,7 @@ export default function PaymentPage() {
       scPwd: cart.scPwd,
       totals,
       payment: {
-        id: newId(),
+        id: paymentId,
         method,
         referenceNo: method === "cash" || referenceNo.trim() === "" ? null : referenceNo.trim(),
         amountC: totals.totalC,

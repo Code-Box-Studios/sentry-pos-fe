@@ -22,6 +22,11 @@ interface CartState {
   heldCarts: HeldCart[];
   /** Set by the payment stock-race path; cleared by any cart mutation. */
   conflictLineIds: string[];
+  /** Idempotency ids for the in-flight payment — stable across retries of the SAME cart. */
+  pendingSaleId: string | null;
+  pendingPaymentId: string | null;
+  /** Mint-once; any cart mutation invalidates (a changed cart is a NEW sale, never a replay). */
+  ensurePendingIds(): { saleId: string; paymentId: string };
   addProduct(p: Product, opts?: { variantId?: string; modifiers?: CartModifier[]; qty?: number }): void;
   addMisc(name: string, amountC: number): void;
   setQty(lineId: string, qty: number): void;
@@ -58,9 +63,9 @@ function assertStock(cart: Cart, productId: string, variantId: string | null, wa
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => {
-      /** Every mutation clears the stale stock-conflict highlight. */
+      /** Every mutation clears the stale stock-conflict highlight and the pending idempotency ids. */
       const mutate = (fn: (cart: Cart) => Cart) =>
-        set((s) => ({ cart: fn(s.cart), conflictLineIds: [] }));
+        set((s) => ({ cart: fn(s.cart), conflictLineIds: [], pendingSaleId: null, pendingPaymentId: null }));
 
       const mapLines = (fn: (line: CartLine) => CartLine) =>
         mutate((cart) => ({ ...cart, lines: cart.lines.map(fn) }));
@@ -69,6 +74,16 @@ export const useCartStore = create<CartState>()(
         cart: emptyCart(),
         heldCarts: [],
         conflictLineIds: [],
+        pendingSaleId: null,
+        pendingPaymentId: null,
+
+        ensurePendingIds: () => {
+          const { pendingSaleId, pendingPaymentId } = get();
+          if (pendingSaleId && pendingPaymentId) return { saleId: pendingSaleId, paymentId: pendingPaymentId };
+          const ids = { saleId: newId(), paymentId: newId() };
+          set({ pendingSaleId: ids.saleId, pendingPaymentId: ids.paymentId });
+          return ids;
+        },
 
         addProduct: (p, opts = {}) => {
           const { cart } = get();
@@ -166,6 +181,8 @@ export const useCartStore = create<CartState>()(
             heldCarts: [...s.heldCarts, { id: newId(), label, heldAt: nowIso(), shiftId, cart: s.cart }],
             cart: emptyCart(),
             conflictLineIds: [],
+            pendingSaleId: null,
+            pendingPaymentId: null,
           })),
 
         resume: (heldId) =>
@@ -176,21 +193,24 @@ export const useCartStore = create<CartState>()(
               cart: held.cart,
               heldCarts: s.heldCarts.filter((h) => h.id !== heldId),
               conflictLineIds: [],
+              pendingSaleId: null,
+              pendingPaymentId: null,
             };
           }),
 
         discardHeld: (heldId) => set((s) => ({ heldCarts: s.heldCarts.filter((h) => h.id !== heldId) })),
 
-        clear: () => set({ cart: emptyCart(), conflictLineIds: [] }),
+        clear: () => set({ cart: emptyCart(), conflictLineIds: [], pendingSaleId: null, pendingPaymentId: null }),
 
-        resetAll: () => set({ cart: emptyCart(), heldCarts: [], conflictLineIds: [] }),
+        resetAll: () =>
+          set({ cart: emptyCart(), heldCarts: [], conflictLineIds: [], pendingSaleId: null, pendingPaymentId: null }),
 
         totals: (settings) => computeTotals(get().cart, settings),
       };
     },
     {
       name: "sentry-pos:carts",
-      partialize: (s) => ({ cart: s.cart, heldCarts: s.heldCarts }),
+      partialize: (s) => ({ cart: s.cart, heldCarts: s.heldCarts, pendingSaleId: s.pendingSaleId, pendingPaymentId: s.pendingPaymentId }),
     }
   )
 );
