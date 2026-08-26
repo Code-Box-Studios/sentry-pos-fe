@@ -65,6 +65,8 @@ test("the header names the pairing and the version", async () => {
 });
 
 test("the connection card names the API target", async () => {
+  // Relies on NEXT_PUBLIC_API_MODE being unset in process.env — true only because Vitest
+  // does not load .env.local (which sets it to "http") into process.env.
   render(<SettingsPage />);
   expect(await screen.findByText(/API mock ·/)).toBeInTheDocument();
 });

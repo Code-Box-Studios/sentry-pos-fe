@@ -84,7 +84,9 @@ export default function PaymentPage() {
     try {
       const sale = await getApi().completeSale(draft);
       pairing.commitReceiptSeq();
-      await refreshStock();
+      // The sale is committed and the receipt number spent: nothing below may throw, or the
+      // cashier is stranded with a paid sale and no receipt. Stock refresh is best-effort only.
+      refreshStock().catch(() => {});
       setLastSale(sale);
       clearCart();
       router.replace("/receipt");

@@ -61,7 +61,7 @@ src/
   lib/         pure helpers — money (integer centavos), qty, uuid, time (UTC ⇄ Asia/Manila),
                barcode wedge buffer, day boundary, media queries, API error handling
   domain/      types, cart model, and the totals engine (VAT, SC/PWD, service charge)
-  api/         PosApi contract, error taxonomy, and the localStorage-backed mock adapter
+  api/         PosApi contract, error taxonomy, and the mock (localStorage) and HTTP adapters
   state/       zustand stores — pairing, settings, catalog, cart, shift, last sale
   components/  chrome · numpad · sale · payment · receipt · history · shift · stock · settings
   app/         one route per screen, every one a client component
