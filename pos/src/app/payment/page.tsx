@@ -56,6 +56,8 @@ export default function PaymentPage() {
 
     // Stable across retries: a timeout-after-commit replays server-side (same sale id → the
     // stored sale comes back) instead of colliding on the receipt number.
+    // Known gap: method/tenderedC/referenceNo live in React state, not the cart, so switching
+    // them after a timeout still replays under the OLD values. Reconciliation is offline-milestone work.
     const { saleId, paymentId } = useCartStore.getState().ensurePendingIds();
 
     const draft: SaleDraft = {
