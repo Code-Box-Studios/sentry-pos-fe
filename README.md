@@ -73,14 +73,24 @@ expected at `../sentry-pos-be`. Its dev seed is FE-mock parity: same owner
 
 ```bash
 # backend — in ../sentry-pos-be (npm, not pnpm)
+npm install
+cp .env.example .env                 # then CHECK IT — see the warning below
 npm run db:up && npx prisma migrate deploy && npm run db:seed
 npm run start:dev                    # :4000, Swagger at /docs
 
-# terminal — in pos/, with .env.local set to
+# terminal — from THIS repo's root (dev:pos is a root script, not a pos/ one),
+# with pos/.env.local set to
 #   NEXT_PUBLIC_API_MODE=http
 #   NEXT_PUBLIC_API_URL=http://localhost:4000/v1
 pnpm dev:pos
 ```
+
+> **Check `DATABASE_URL` before migrating.** It must point at port **54400** — the backend's own
+> Docker Postgres. An absent or stale `.env` can leave it on **5433**, which is *this* repo's
+> Payload CMS database (see [Local database](#local-database)); `prisma migrate deploy` will then
+> cheerfully write 6 POS migrations into the CMS. `npm install` matters for the same reason:
+> a `node_modules` older than `package.json` fails the seed on a missing `argon2`, and a stale
+> generated Prisma client fails it on a schema mismatch (`npx prisma generate` fixes that one).
 
 `pnpm test:integration` inside `pos/` (with `POS_E2E_API_URL=http://localhost:4000/v1`) drives the
 whole golden path — pairing, a worst-case sale, replay, void, refund, Z report — against the live

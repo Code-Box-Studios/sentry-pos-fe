@@ -8,7 +8,7 @@ import {
 import type { CompletedSale, OwnerSession, PairingResult, SaleDraft } from "@/api/types";
 import type { Cart, CartLine } from "@/domain/cart";
 import { computeTotals } from "@/domain/totals";
-import type { CatalogPayload } from "@/domain/types";
+import type { CatalogPayload, StockLevel } from "@/domain/types";
 import { newId } from "@/lib/uuid";
 
 const BASE = process.env.POS_E2E_API_URL;
@@ -122,10 +122,18 @@ live("live API golden path", () => {
     };
 
     parityDraft = draftFor(cart);
+    // THE PARITY GUARD IS THIS LINE NOT REJECTING. The server recomputes the whole cart and
+    // refuses on `canonical(totals) !== canonical(dto.totals)` — a key-sorted deep compare of the
+    // entire CartTotals, nested `lines: LineTotals[]` included (BE sales.service.ts:169). Any
+    // per-line divergence is a 422 and completeSale throws here.
     paritySale = await api.completeSale(parityDraft);
     receiptSeq += 1;
     expect(paritySale.status).toBe("completed");
-    expect(paritySale.totals).toEqual(parityDraft.totals); // accepted AND stored our math verbatim
+    // Round-trip only: the BE assembles CompletedSale by spreading the draft it stored verbatim
+    // (sales.service.ts:538,750), so this can never catch an engine divergence on its own. If the
+    // server's compare is ever narrowed to totalC, line-level parity rots silently and only the
+    // call above would have caught it — keep that compare deep.
+    expect(paritySale.totals).toEqual(parityDraft.totals);
   });
 
   it("replays the identical draft idempotently", async () => {
@@ -148,12 +156,23 @@ live("live API golden path", () => {
     expect(err.conflicts[0]).toMatchObject({ productId: ube.id, availableQty: 0 });
   });
 
-  it("voids a sale inside its own shift", async () => {
+  it("voids a sale inside its own shift and puts the stock back", async () => {
+    const pandesal = catalog.products.find((p) => /pan de sal/i.test(p.name))!;
+    const qtyOf = (levels: StockLevel[]): number =>
+      levels.find((s) => s.productId === pandesal.id && s.variantId === null)!.qty;
+
+    const beforeC = qtyOf(await api.getStockLevels());
     const sale = await api.completeSale(draftFor(simpleCart()));
     receiptSeq += 1;
+    // Assert the decrement too, or the restore below could pass vacuously on a no-op.
+    expect(qtyOf(await api.getStockLevels())).toBe(beforeC - 1);
+
     const voided = await api.voidSale(sale.id, "integration void");
     expect(voided.status).toBe("voided");
     expect(voided.voidedAt).not.toBeNull();
+    // restoreStock mirrors the sale's own stock_movements (BE sales.service.ts:346), and this
+    // suite's re-runnability rests on it landing back exactly — not approximately.
+    expect(qtyOf(await api.getStockLevels())).toBe(beforeC);
   });
 
   it("gates refunds behind the PIN, then refunds with the right one", async () => {
