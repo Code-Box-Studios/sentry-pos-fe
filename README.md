@@ -65,6 +65,28 @@ see `NEXT_PUBLIC_APP_SIGNIN_URL` in [`portal/.env.example`](portal/.env.example)
 Sign in with `maria@kapediaria.ph` / `sentry-demo`; the refund PIN is `123456`. Everything is backed
 by an in-browser mock until `sentry-pos-be` exists — the POS app needs no database and no Docker.
 
+## Running the terminal against the live API
+
+The backend lives in the sibling repo [`sentry-pos-be`](https://github.com/Code-Box-Studios/sentry-pos-be),
+expected at `../sentry-pos-be`. Its dev seed is FE-mock parity: same owner
+(`maria@kapediaria.ph` / `sentry-demo`), same catalog, same refund PIN (`123456`).
+
+```bash
+# backend — in ../sentry-pos-be (npm, not pnpm)
+npm run db:up && npx prisma migrate deploy && npm run db:seed
+npm run start:dev                    # :4000, Swagger at /docs
+
+# terminal — in pos/, with .env.local set to
+#   NEXT_PUBLIC_API_MODE=http
+#   NEXT_PUBLIC_API_URL=http://localhost:4000/v1
+pnpm dev:pos
+```
+
+`pnpm test:integration` inside `pos/` (with `POS_E2E_API_URL=http://localhost:4000/v1`) drives the
+whole golden path — pairing, a worst-case sale, replay, void, refund, Z report — against the live
+server and fails if the FE and BE totals engines ever disagree. Note: the backend's Postgres
+(Docker, port 54400) is separate from this repo's `db:up` Postgres (port 5433, Payload CMS only).
+
 ## Local database
 
 Where the database is *hosted* is deliberately undecided. Everything that talks to it — Payload, and

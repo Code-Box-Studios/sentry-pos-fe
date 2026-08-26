@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
 
@@ -14,6 +14,9 @@ export default defineConfig({
     // Dialog tests drive dozens of pointer events; the 5s default is tight on a busy machine,
     // and a timed-out test leaves the runner unable to finish.
     testTimeout: 20000,
+    // The live suite needs a real server and a node environment — it runs from
+    // vitest.integration.config.ts (`pnpm test:integration`), never from the default run.
+    exclude: [...configDefaults.exclude, "src/test/integration/**"],
   },
   resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
 });
