@@ -28,6 +28,9 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      // Rendered pixel references and their generated design-canvas runtime — vendored artefacts,
+      // not app source. Only in scope since the app moved up to the repo root.
+      "design/**",
     ],
   },
 ];
