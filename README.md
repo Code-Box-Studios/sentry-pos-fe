@@ -1,16 +1,20 @@
 # sentry-pos-fe
 
-Front-end workspace for **Sentry**, a point-of-sale system for Philippine small businesses.
+The **POS terminal** for Sentry, a point-of-sale system for Philippine small businesses.
 
 ## Layout
 
 | Path | What it is | Dev port |
 | --- | --- | --- |
-| [`pos/`](pos/) | The POS terminal app — static Next.js export, running today against a mock API. See [`pos/README.md`](pos/README.md). | 3000 |
-| [`portal/`](portal/) | The landing page and, later, the owner portal. Hosts the Payload CMS. See [`portal/README.md`](portal/README.md). | 3100 |
-| [`design/`](design/) | Rendered pixel references: `pos-terminal.dc.html` (all 11 POS screens at tablet landscape) and `landing.dc.html` (the marketing page). | — |
+| [`pos/`](pos/) | The terminal app — static Next.js export. See [`pos/README.md`](pos/README.md). | 3000 |
+| [`design/`](design/) | Rendered pixel reference: `pos-terminal.dc.html` (all 11 screens at tablet landscape). | — |
 | [`brand/`](brand/) | Sentry logo marks and lockups. | — |
-| [`docs/`](docs/) | Implementation plans. | — |
+| [`docs/`](docs/) | Implementation plans and design specs. | — |
+
+The marketing site used to live here as `portal/`. It now has its own repo,
+[`sentry-pos-landing`](https://github.com/Code-Box-Studios/sentry-pos-landing) — it is server-rendered
+and needs Postgres, where the terminal is a static export that needs neither, so they deploy on
+different infrastructure and split cleanly.
 
 ## Specs
 
@@ -24,23 +28,25 @@ file.
 | [`design-spec.md`](design-spec.md) | Visual language: tokens, type, components |
 | [`staff-spec.md`](staff-spec.md) | Staff accounts and roles (a later phase) |
 | [`analytics-spec.md`](analytics-spec.md) | Portal analytics and reporting |
-| [`landing-spec.md`](landing-spec.md) | Marketing site |
 
-The two apps deploy to separate subdomains (`pos.` and the apex / `app.`, per [`project-spec.md`](project-spec.md) §12), so each gets its own fixed dev port — they are different servers, not one site.
+`project-spec.md` stays here as the system-wide source of truth for every repo. `design-spec.md` is
+mirrored into `sentry-pos-landing` so that repo stands on its own — change it in both places.
+The landing page's own spec moved with the app.
 
-## Running everything
+## Running the terminal
 
 ```bash
-pnpm install:all      # once — root, then pos/ and portal/
-pnpm db:up            # Postgres, needed by portal/ only
-pnpm dev              # both apps, prefixed output, Ctrl-C stops both
+pnpm install:all      # once — root, then pos/
+pnpm dev:pos          # http://localhost:3000
 ```
 
-`pnpm dev` runs the two apps side by side on their fixed ports. They stay separate installs with
-separate lockfiles — the root package.json exists only to hold this script, which is why both Next
-configs pin `outputFileTracingRoot` to their own directory.
+Or `cd pos && pnpm dev`. The terminal needs no database and no Docker: it runs against an in-browser
+mock unless you point it at the API below.
 
-To run one on its own, use `pnpm dev:pos` / `pnpm dev:portal`, or `cd` into either and `pnpm dev`.
+The apps deploy to separate subdomains (`pos.`, the apex, and `app.`, per
+[`project-spec.md`](project-spec.md) §12), so each keeps a fixed dev port — they are different
+servers, not one site. The root `package.json` exists only to hold the convenience scripts above,
+which is why `pos/next.config.ts` pins `outputFileTracingRoot` to its own directory.
 
 ## Test accounts
 
@@ -50,20 +56,10 @@ host's secret store.
 | Where | Sign in with | Notes |
 | --- | --- | --- |
 | POS terminal — http://localhost:3000 | `maria@kapediaria.ph` / `sentry-demo` | Refund PIN `123456`. Four wrong PINs lock the terminal for five minutes. |
-| CMS — http://localhost:3100/cms | `admin@sentry.local` / `sentry-demo` | Edits the landing page copy. Change it in **Settings → CMS users**. |
 
-The POS is backed by `MockPosApi` in localStorage under `sentry-pos:mock:v1` — clear site data to
-reset to seed. Its tenant is Kape Diaria, branches Marikit `MKT` and Bayanihan `BYN`; pairing asks
-for a business, a branch and a terminal name rather than a code.
-
-The landing page's **Sign in** button points at the POS in development. In production it belongs to
-the owner portal (`app.`, per [`project-spec.md`](project-spec.md) §12), which is not built yet —
-see `NEXT_PUBLIC_APP_SIGNIN_URL` in [`portal/.env.example`](portal/.env.example).
-
-## Working on the POS app
-
-Sign in with `maria@kapediaria.ph` / `sentry-demo`; the refund PIN is `123456`. Everything is backed
-by an in-browser mock until `sentry-pos-be` exists — the POS app needs no database and no Docker.
+In mock mode the terminal is backed by `MockPosApi` in localStorage under `sentry-pos:mock:v1` —
+clear site data to reset to seed. Its tenant is Kape Diaria, branches Marikit `MKT` and Bayanihan
+`BYN`; pairing asks for a business, a branch and a terminal name rather than a code.
 
 ## Running the terminal against the live API
 
@@ -86,39 +82,22 @@ pnpm dev:pos
 ```
 
 > **Check `DATABASE_URL` before migrating.** It must point at port **54400** — the backend's own
-> Docker Postgres. An absent or stale `.env` can leave it on **5433**, which is *this* repo's
-> Payload CMS database (see [Local database](#local-database)); `prisma migrate deploy` will then
-> cheerfully write 6 POS migrations into the CMS. `npm install` matters for the same reason:
-> a `node_modules` older than `package.json` fails the seed on a missing `argon2`, and a stale
-> generated Prisma client fails it on a schema mismatch (`npx prisma generate` fixes that one).
+> Docker Postgres. An absent or stale `.env` can leave it on **5433**, which is the
+> `sentry-pos-landing` repo's Payload CMS database; `prisma migrate deploy` will then cheerfully
+> write POS migrations into the CMS. `npm install` matters for the same reason: a `node_modules`
+> older than `package.json` fails the seed on a missing `argon2`, and a stale generated Prisma
+> client fails it on a schema mismatch (`npx prisma generate` fixes that one).
 
 `pnpm test:integration` inside `pos/` (with `POS_E2E_API_URL=http://localhost:4000/v1`) drives the
 whole golden path — pairing, a worst-case sale, replay, void, refund, Z report — against the live
-server and fails if the FE and BE totals engines ever disagree. Note: the backend's Postgres
-(Docker, port 54400) is separate from this repo's `db:up` Postgres (port 5433, Payload CMS only).
+server and fails if the FE and BE totals engines ever disagree.
 
-## Local database
+## Where this fits
 
-Where the database is *hosted* is deliberately undecided. Everything that talks to it — Payload, and
-later Prisma and the Nest API — takes a plain connection string, so moving to Supabase, Neon or RDS
-at deploy time is an environment change and a dump/restore.
-
-```bash
-docker compose up -d      # Postgres 17 on localhost:5433
-docker compose down       # stop; add -v to wipe the volume and start clean
-```
-
-The host port is **5433**, not 5432, to stay out of the way of other projects' containers.
-
-| Role | Connection string | Reaches |
+| Repo | Surface | Shape |
 | --- | --- | --- |
-| `sentry` | `postgresql://sentry:sentry_dev_password@localhost:5433/sentry` | everything |
-| `cms_user` | `postgresql://cms_user:cms_dev_password@localhost:5433/sentry` | the `cms` schema only |
+| **sentry-pos-fe** (this one) | the POS terminal, `pos.` | static Next export, no server |
+| [`sentry-pos-landing`](https://github.com/Code-Box-Studios/sentry-pos-landing) | the marketing site, apex domain | Next SSR + Payload + Postgres |
+| [`sentry-pos-be`](https://github.com/Code-Box-Studios/sentry-pos-be) | the API, `api.` | NestJS + Prisma + Postgres |
 
-These credentials are development-only and intentionally committed; production values come from the
-host's secret store.
-
-The split mirrors the production topology in [`landing-spec.md`](landing-spec.md) §5: the marketing
-CMS gets its own schema and its own login, so a compromised CMS credential reaches page copy and
-nothing else. `cms_user` is denied `CREATE` in `public`, where tenant data will live — see
-[`docker/postgres-init/01-cms-schema.sql`](docker/postgres-init/01-cms-schema.sql).
+The owner portal (`app.`) is not built yet.

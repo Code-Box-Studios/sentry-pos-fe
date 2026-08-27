@@ -3,14 +3,8 @@
   "private": true,
   "packageManager": "pnpm@11.22.0",
   "scripts": {
-    "dev": "concurrently --names pos,portal --prefix-colors cyan,green --kill-others-on-fail \"pnpm --dir pos dev\" \"pnpm --dir portal dev\"",
+    "dev": "pnpm --dir pos dev",
     "dev:pos": "pnpm --dir pos dev",
-    "dev:portal": "pnpm --dir portal dev",
-    "install:all": "pnpm install && pnpm --dir pos install && pnpm --dir portal install",
-    "db:up": "docker compose up -d",
-    "db:down": "docker compose down"
-  },
-  "devDependencies": {
-    "concurrently": "^9.2.1"
+    "install:all": "pnpm install && pnpm --dir pos install"
   }
 }
