@@ -106,3 +106,8 @@ test("a non-cash sale prints its reference number", () => {
   expect(rowValue("Ref")).toBe("1029-3847");
   expect(screen.queryByText("Change")).toBeNull();
 });
+
+test("receipt includes the optional business logo", () => {
+  view({ business: { ...FIXTURE_BUSINESS, logoUrl: "https://media.example/logo.png" } });
+  expect(screen.getByRole("img", { name: `${FIXTURE_BUSINESS.name} logo` })).toHaveAttribute("src", "https://media.example/logo.png");
+});

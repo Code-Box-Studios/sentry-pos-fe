@@ -2,6 +2,7 @@ import type { PosApi } from "./client";
 import { MockPosApi } from "./mock/adapter";
 import { HttpPosApi } from "./http/adapter";
 import { usePairingStore } from "@/state/pairing";
+import { useOperatorStore } from "@/state/operator";
 
 let instance: PosApi | null = null;
 
@@ -27,6 +28,7 @@ export function getApi(): PosApi {
     instance = new HttpPosApi({
       baseUrl,
       getDeviceToken: () => usePairingStore.getState().deviceToken,
+      getOperatorToken: () => useOperatorStore.getState().token,
     });
     return instance;
   }

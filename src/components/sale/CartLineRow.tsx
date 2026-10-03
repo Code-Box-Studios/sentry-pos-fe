@@ -103,9 +103,9 @@ export function CartLineRow({
 
         <div className="flex-1" />
 
-        {line.discount && (
-          <button type="button" onClick={onDiscount} aria-label="Change line discount">
-            <Badge variant="soft-green">{discountBadgeLabel(line.discount)}</Badge>
+        {(
+          <button type="button" onClick={onDiscount} aria-label={line.discount ? "Change line discount" : "Add line discount"}>
+            <Badge variant="soft-green">{line.discount ? discountBadgeLabel(line.discount) : "Discount"}</Badge>
           </button>
         )}
 

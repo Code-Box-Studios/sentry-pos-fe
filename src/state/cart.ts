@@ -1,3 +1,4 @@
+import type { SaleDraft } from "@/api/types";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { emptyCart, type Cart, type CartLine, type CartModifier, type DiscountSpec, type ScPwdInfo } from "@/domain/cart";
@@ -25,7 +26,10 @@ interface CartState {
   /** Idempotency ids for the in-flight payment — stable across retries of the SAME cart. */
   pendingSaleId: string | null;
   pendingPaymentId: string | null;
-  /** Mint-once; any cart mutation invalidates (a changed cart is a NEW sale, never a replay). */
+  pendingDraft: SaleDraft | null;
+  savePendingDraft(draft: SaleDraft): SaleDraft;
+  releasePending(): void;
+  /** Mint-once before submission. Submitted drafts stay frozen until explicitly resolved. */
   ensurePendingIds(): { saleId: string; paymentId: string };
   addProduct(p: Product, opts?: { variantId?: string; modifiers?: CartModifier[]; qty?: number }): void;
   addMisc(name: string, amountC: number): void;
@@ -63,9 +67,9 @@ function assertStock(cart: Cart, productId: string, variantId: string | null, wa
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => {
-      /** Every mutation clears the stale stock-conflict highlight and the pending idempotency ids. */
+      /** Never discard an unresolved request: its sale may already have committed remotely. */
       const mutate = (fn: (cart: Cart) => Cart) =>
-        set((s) => ({ cart: fn(s.cart), conflictLineIds: [], pendingSaleId: null, pendingPaymentId: null }));
+        set((s) => s.pendingDraft ? s : ({ cart: fn(s.cart), conflictLineIds: [], pendingSaleId: null, pendingPaymentId: null }));
 
       const mapLines = (fn: (line: CartLine) => CartLine) =>
         mutate((cart) => ({ ...cart, lines: cart.lines.map(fn) }));
@@ -76,6 +80,14 @@ export const useCartStore = create<CartState>()(
         conflictLineIds: [],
         pendingSaleId: null,
         pendingPaymentId: null,
+        pendingDraft: null,
+        savePendingDraft: (draft) => {
+          if (get().pendingDraft) return get().pendingDraft!;
+          const snapshot = structuredClone(draft);
+          set({ pendingDraft: snapshot });
+          return snapshot;
+        },
+        releasePending: () => set({ pendingDraft: null, pendingSaleId: null, pendingPaymentId: null }),
 
         ensurePendingIds: () => {
           const { pendingSaleId, pendingPaymentId } = get();
@@ -177,7 +189,7 @@ export const useCartStore = create<CartState>()(
           mapLines((l) => (l.id === lineId ? { ...l, scPwdMarked: !l.scPwdMarked } : l)),
 
         hold: (label, shiftId) =>
-          set((s) => ({
+          set((s) => s.pendingDraft ? s : ({
             heldCarts: [...s.heldCarts, { id: newId(), label, heldAt: nowIso(), shiftId, cart: s.cart }],
             cart: emptyCart(),
             conflictLineIds: [],
@@ -187,6 +199,7 @@ export const useCartStore = create<CartState>()(
 
         resume: (heldId) =>
           set((s) => {
+            if (s.pendingDraft) return s;
             const held = s.heldCarts.find((h) => h.id === heldId);
             if (!held) return s;
             return {
@@ -200,17 +213,17 @@ export const useCartStore = create<CartState>()(
 
         discardHeld: (heldId) => set((s) => ({ heldCarts: s.heldCarts.filter((h) => h.id !== heldId) })),
 
-        clear: () => set({ cart: emptyCart(), conflictLineIds: [], pendingSaleId: null, pendingPaymentId: null }),
+        clear: () => { if (!get().pendingDraft) set({ cart: emptyCart(), conflictLineIds: [], pendingSaleId: null, pendingPaymentId: null }); },
 
         resetAll: () =>
-          set({ cart: emptyCart(), heldCarts: [], conflictLineIds: [], pendingSaleId: null, pendingPaymentId: null }),
+          set({ cart: emptyCart(), heldCarts: [], conflictLineIds: [], pendingSaleId: null, pendingPaymentId: null, pendingDraft: null }),
 
         totals: (settings) => computeTotals(get().cart, settings),
       };
     },
     {
       name: "sentry-pos:carts",
-      partialize: (s) => ({ cart: s.cart, heldCarts: s.heldCarts, pendingSaleId: s.pendingSaleId, pendingPaymentId: s.pendingPaymentId }),
+      partialize: (s) => ({ cart: s.cart, heldCarts: s.heldCarts, pendingSaleId: s.pendingSaleId, pendingPaymentId: s.pendingPaymentId, pendingDraft: s.pendingDraft }),
     }
   )
 );

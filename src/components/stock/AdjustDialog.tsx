@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { getApi } from "@/api";
 import { ApiError } from "@/api/errors";
+import type { ActionApproval } from "@/api/types";
+import { ActionApprovalForm, approvalReady } from "@/components/chrome/ActionApprovalForm";
 import { Numpad, type NumpadKey } from "@/components/numpad/Numpad";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -10,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import type { AdjustReason, Product } from "@/domain/types";
 import { formatQty } from "@/lib/qty";
 import { useCatalogStore } from "@/state/catalog";
+import { useOperatorStore } from "@/state/operator";
+import { handleApiError } from "@/lib/handle-api-error";
 
 const REASONS: Array<{ value: AdjustReason; label: string }> = [
   { value: "damage", label: "Damage" },
@@ -49,6 +53,8 @@ export function AdjustDialog({
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [approval, setApproval] = useState<ActionApproval | null>(null);
+  const needsApproval = useOperatorStore((s) => s.operator?.role !== "owner" && s.operator?.role !== "manager");
 
   useEffect(() => {
     if (open) {
@@ -56,6 +62,7 @@ export function AdjustDialog({
       setReason(null);
       setNote("");
       setError(null);
+      setApproval(null);
     }
   }, [open]);
 
@@ -76,7 +83,7 @@ export function AdjustDialog({
   }
 
   async function submit() {
-    if (newQty === null || reason === null || busy) return;
+    if (newQty === null || reason === null || busy || (needsApproval && !approvalReady(approval))) return;
     setBusy(true);
     setError(null);
     try {
@@ -86,10 +93,14 @@ export function AdjustDialog({
         newQty,
         reasonCategory: reason,
         note: note.trim() === "" ? null : note.trim(),
+        ...(needsApproval ? { approval: approval! } : {}),
       });
+      setApproval(null);
       await refreshStock();
       onClose();
     } catch (e) {
+      setApproval((value) => value ? { ...value, pin: "" } : null);
+      try { handleApiError(e); } catch { /* Keep validation/PIN errors in this dialog. */ }
       setError(e instanceof ApiError ? e.message : "Could not post the adjustment");
     } finally {
       setBusy(false);
@@ -149,12 +160,13 @@ export function AdjustDialog({
         />
 
         {error && <p className="text-sm text-danger">{error}</p>}
+        {needsApproval && <ActionApprovalForm value={approval} onChange={setApproval} disabled={busy} />}
 
         <div className="flex gap-2.5">
           <Button variant="secondary" className="flex-1" onClick={onClose}>
             Cancel
           </Button>
-          <Button className="flex-1" disabled={busy || newQty === null || reason === null} onClick={submit}>
+          <Button className="flex-1" disabled={busy || newQty === null || reason === null || (needsApproval && !approvalReady(approval))} onClick={submit}>
             Post adjustment
           </Button>
         </div>

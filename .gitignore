@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 !.env.example
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/

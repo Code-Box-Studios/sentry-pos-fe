@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { ValidationError } from "@/api/errors";
 import { setApiForTests } from "@/api";
 import { MockPosApi } from "@/api/mock/adapter";
 import { resetMockState } from "@/api/mock/store";
@@ -7,6 +8,7 @@ import type { CatalogPayload, Product } from "@/domain/types";
 import { useCartStore } from "@/state/cart";
 import { useCatalogStore } from "@/state/catalog";
 import { useLastSaleStore } from "@/state/lastSale";
+import { useOperatorStore } from "@/state/operator";
 import { usePairingStore } from "@/state/pairing";
 import { useShiftStore } from "@/state/shift";
 import { pairForTest, seedCatalogForTest } from "@/test/utils";
@@ -30,6 +32,7 @@ beforeEach(async () => {
   api = new MockPosApi({ latencyMs: 0 });
   setApiForTests(api);
   await pairForTest(api);
+  useOperatorStore.getState().unlock(await api.unlockOperator("mock-owner", "123456"));
 
   catalog = seedCatalogForTest();
   usePairingStore.setState({
@@ -142,4 +145,62 @@ test("the header goes back to the sale", async () => {
 
   await user.click(screen.getByRole("button", { name: "← Back to sale" }));
   expect(back).toHaveBeenCalled();
+});
+
+test("timeout after commit freezes payment intent and retries it after reload", async () => {
+  const user = userEvent.setup();
+  useCartStore.getState().addProduct(find("prod-espresso"));
+  const original = api.completeSale.bind(api);
+  const complete = vi.spyOn(api, "completeSale").mockImplementationOnce(async draft => {
+    await original(draft);
+    throw new Error("Response lost");
+  });
+  const { unmount } = render(<PaymentPage />);
+  await user.click(screen.getByRole("button", { name: "GCash" }));
+  await user.type(screen.getByLabelText("Reference number (optional)"), "paid-ref");
+  await user.click(screen.getByRole("button", { name: "Complete sale" }));
+  expect(screen.getByRole("button", { name: "Cash" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "← Back to sale" })).toBeDisabled();
+  const persisted = localStorage.getItem("sentry-pos:carts")!;
+  expect(complete.mock.calls[0]![0].operatorUserId).toBe(useOperatorStore.getState().operator!.userId);
+  unmount();
+  useCartStore.getState().resetAll();
+  localStorage.setItem("sentry-pos:carts", persisted);
+  await useCartStore.persist.rehydrate();
+  render(<PaymentPage />);
+  expect(screen.getByLabelText("Reference number (optional)")).toHaveValue("paid-ref");
+  await user.click(screen.getByRole("button", { name: "Retry original payment" }));
+  await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/receipt"));
+  expect(complete.mock.calls[1]![0]).toEqual(complete.mock.calls[0]![0]);
+  expect(await api.listSales({ date: null })).toHaveLength(1);
+  expect(useLastSaleStore.getState().sale?.payment.referenceNo).toBe("paid-ref");
+});
+
+test("a definitive rejection lets the cashier correct payment details", async () => {
+  useCartStore.getState().addProduct(find("prod-espresso"));
+  const complete = vi.spyOn(api, "completeSale").mockRejectedValueOnce(new ValidationError("Payment rejected"));
+  const user = userEvent.setup();
+  render(<PaymentPage />);
+  await user.click(screen.getByRole("button", { name: "Exact" }));
+  await user.click(screen.getByRole("button", { name: "Complete sale" }));
+  expect(screen.getByRole("button", { name: "GCash" })).toBeEnabled();
+  await user.click(screen.getByRole("button", { name: "GCash" }));
+  await user.click(screen.getByRole("button", { name: "Complete sale" }));
+  await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/receipt"));
+  expect(complete.mock.calls[1]![0].id).not.toBe(complete.mock.calls[0]![0].id);
+  expect(useLastSaleStore.getState().sale?.payment.method).toBe("gcash");
+});
+
+test("pending payment retains quoted total when business settings refresh", async () => {
+  useCartStore.getState().addProduct(find("prod-espresso"));
+  useCartStore.getState().setOrderType("dine_in");
+  vi.spyOn(api, "completeSale").mockRejectedValueOnce(new Error("Response lost"));
+  const user = userEvent.setup();
+  const { unmount } = render(<PaymentPage />);
+  await user.click(screen.getByRole("button", { name: "Exact" }));
+  await user.click(screen.getByRole("button", { name: "Complete sale" }));
+  unmount();
+  useCatalogStore.setState({ catalog: { ...catalog, business: { ...catalog.business, serviceChargeRate: 0.1 } } });
+  render(<PaymentPage />);
+  expect(screen.getByLabelText("Amount due")).toHaveTextContent("₱89.25");
 });

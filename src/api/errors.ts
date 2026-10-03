@@ -5,6 +5,7 @@ export class ApiError extends Error {
   }
 }
 export class UnauthorizedError extends ApiError { constructor(msg = "Device token revoked") { super("unauthorized", msg); } }
+export class OperatorSessionError extends ApiError { constructor(msg = "Unlock this terminal to continue") { super("operator_unauthorized", msg); } }
 export class NetworkError extends ApiError { constructor() { super("network", "API unreachable"); } }
 export class ValidationError extends ApiError { constructor(msg: string) { super("validation", msg); } }
 export interface StockConflict { lineId: string | null; productId: string; variantId: string | null; availableQty: number }

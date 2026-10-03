@@ -1,6 +1,10 @@
 import "@testing-library/jest-dom/vitest";
 import { afterEach } from "vitest";
 import { cleanup } from "@testing-library/react";
+import { webcrypto } from "node:crypto";
+
+// jsdom provides random values but not SubtleCrypto, which the synthetic mock uses for PIN digests.
+if (!globalThis.crypto.subtle) Object.defineProperty(globalThis.crypto, "subtle", { value: webcrypto.subtle, configurable: true });
 
 /**
  * jsdom ships no matchMedia. Back it with window.innerWidth so responsive components can be driven

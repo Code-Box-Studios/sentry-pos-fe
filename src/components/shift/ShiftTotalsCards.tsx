@@ -1,6 +1,6 @@
 "use client";
 
-import type { ShiftTotals } from "@/api/types";
+import type { LiveShiftTotals } from "@/api/types";
 import { Card } from "@/components/ui/card";
 import { formatC, formatPeso } from "@/lib/money";
 
@@ -15,7 +15,7 @@ function Kpi({ label, value, meta }: { label: string; value: string; meta: strin
 }
 
 /** The de facto X reading, available at any time (pos-spec §8). */
-export function ShiftTotalsCards({ totals }: { totals: ShiftTotals }) {
+export function ShiftTotalsCards({ totals }: { totals: LiveShiftTotals }) {
   const nonCash = [
     ["card", totals.byMethod.card],
     ["gcash", totals.byMethod.gcash],
@@ -35,7 +35,7 @@ export function ShiftTotalsCards({ totals }: { totals: ShiftTotals }) {
         value={formatPeso(totals.grossC)}
         meta={`${totals.saleCount} ${totals.saleCount === 1 ? "sale" : "sales"}`}
       />
-      <Kpi label="CASH SALES" value={formatPeso(totals.cashSalesC)} meta={nonCashMeta} />
+      <Kpi label="CASH SALES" value={totals.cashSalesC === null ? "Hidden" : formatPeso(totals.cashSalesC)} meta={totals.blindCloseEnabled ? "Revealed after closing" : nonCashMeta} />
       <Kpi
         label="VOIDS / REFUNDS"
         value={`${totals.voidCount} / ${totals.refundCount}`}

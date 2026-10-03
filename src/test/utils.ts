@@ -2,6 +2,7 @@ import type { MockPosApi } from "@/api/mock/adapter";
 import { makeSeedCatalog } from "@/api/mock/seed";
 import type { CatalogPayload } from "@/domain/types";
 import { stockKey, useCatalogStore } from "@/state/catalog";
+import { useOperatorStore } from "@/state/operator";
 
 /** Signs in as the seed owner and pairs the terminal to Marikit as "Counter 1". */
 export async function pairForTest(api: MockPosApi): Promise<void> {
@@ -9,6 +10,7 @@ export async function pairForTest(api: MockPosApi): Promise<void> {
   const business = (await api.listBusinesses(session)).find((b) => !b.isDemo)!;
   const [branch] = await api.listBranches(session, business.id);
   await api.pairTerminal(session, business.id, branch!.id, "Counter 1");
+  useOperatorStore.getState().unlock(await api.unlockOperator("mock-owner", "123456"));
 }
 
 /** Loads the seed catalog into the catalog store, payload and derived stock map alike. */

@@ -9,7 +9,8 @@ import { formatPeso } from "@/lib/money";
 import { mulQtyPriceC } from "@/lib/qty";
 import { cn } from "@/lib/utils";
 import { useCatalogStore } from "@/state/catalog";
-import { useCartStore } from "@/state/cart";
+import { toast } from "sonner";
+import { CartStockError, useCartStore } from "@/state/cart";
 
 function groupLabel(group: ModifierGroup): string {
   const rule = group.minSelect > 0 ? `CHOOSE ${group.minSelect}` : `CHOOSE UP TO ${group.maxSelect}`;
@@ -21,20 +22,22 @@ function deltaLabel(m: Modifier): string {
 }
 
 /** Enforces min/max select before anything reaches the cart (pos-spec §4). */
-export function VariantModifierSheet({ product, onClose }: { product: Product | null; onClose(): void }) {
+export function VariantModifierSheet({ product, initialVariantId = null, onClose }: { product: Product | null; initialVariantId?: string | null; onClose(): void }) {
   const allGroups = useCatalogStore((s) => s.catalog?.modifierGroups ?? []);
   const addProduct = useCartStore((s) => s.addProduct);
 
   const [variantId, setVariantId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Record<string, string[]>>({});
   const [qty, setQty] = useState(1);
+  const [weight, setWeight] = useState("");
 
   useEffect(() => {
     // No preselection: the operator must pick the size the customer asked for.
-    setVariantId(null);
+    setVariantId(initialVariantId);
     setSelected({});
     setQty(1);
-  }, [product]);
+    setWeight("");
+  }, [product, initialVariantId]);
 
   if (!product) return null;
 
@@ -53,11 +56,13 @@ export function VariantModifierSheet({ product, onClose }: { product: Product | 
   );
 
   const unitC = chosen.reduce((sum, m) => sum + m.priceDeltaC, baseC);
-  const lineTotalC = mulQtyPriceC(qty, unitC);
+  const validWeight = /^\d+(?:\.\d{0,3})?$/.test(weight) && Number(weight) > 0 && Number(weight) <= 9999999.999;
+  const quantity = product.soldBy === "weight" ? (validWeight ? Number(weight) : 0) : qty;
+  const lineTotalC = mulQtyPriceC(quantity, unitC);
 
   const needsVariant = product.variants.length > 0 && variantId === null;
   const unmetGroup = groups.some((g) => (selected[g.id] ?? []).length < g.minSelect);
-  const canAdd = !needsVariant && !unmetGroup;
+  const canAdd = !needsVariant && !unmetGroup && (product.soldBy !== "weight" || validWeight);
 
   function toggle(group: ModifierGroup, modifierId: string) {
     setSelected((prev) => {
@@ -71,8 +76,13 @@ export function VariantModifierSheet({ product, onClose }: { product: Product | 
 
   function confirm() {
     if (!product || !canAdd) return;
-    addProduct(product, { variantId: variantId ?? undefined, modifiers: chosen, qty });
-    onClose();
+    try {
+      addProduct(product, { variantId: variantId ?? undefined, modifiers: chosen, qty: quantity });
+      onClose();
+    } catch (error) {
+      if (error instanceof CartStockError) toast.error(`Only ${error.availableQty} ${product.soldBy === "weight" ? "kg" : "units"} available`);
+      else throw error;
+    }
   }
 
   return (
@@ -152,7 +162,14 @@ export function VariantModifierSheet({ product, onClose }: { product: Product | 
         ))}
 
         <div className="flex items-center gap-3 border-t border-hairline px-7 py-5">
-          <div className="flex items-center rounded-full border border-hairline-strong">
+          {product.soldBy === "weight" ? (
+            <label className="flex flex-col gap-1 text-sm">
+              Weight (kg)
+              <input aria-label="Weight (kg)" inputMode="decimal" value={weight}
+                onChange={(event) => setWeight(event.target.value)}
+                className="w-28 rounded border border-hairline px-3 py-2" placeholder="0.000" />
+            </label>
+          ) : <div className="flex items-center rounded-full border border-hairline-strong">
             <button
               type="button"
               aria-label="Decrease quantity"
@@ -170,7 +187,7 @@ export function VariantModifierSheet({ product, onClose }: { product: Product | 
             >
               +
             </button>
-          </div>
+          </div>}
           <div className="flex-1" />
           <Button variant="secondary" onClick={onClose}>
             Cancel

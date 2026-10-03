@@ -12,6 +12,7 @@ import { formatPeso, pct } from "@/lib/money";
 import { mulQtyPriceC } from "@/lib/qty";
 import { useCatalogStore } from "@/state/catalog";
 import { useCartStore } from "@/state/cart";
+import { useOperatorStore } from "@/state/operator";
 
 export type DiscountTarget = { kind: "line"; lineId: string } | { kind: "order" };
 
@@ -42,6 +43,7 @@ export function DiscountPicker({
   const business = useCatalogStore((s) => s.catalog?.business ?? null);
   const named = useCatalogStore((s) => s.catalog?.discounts ?? []);
   const cart = useCartStore((s) => s.cart);
+  const canEnterFree = useOperatorStore((s) => s.operator?.role === "owner");
   const setLineDiscount = useCartStore((s) => s.setLineDiscount);
   const setOrderDiscount = useCartStore((s) => s.setOrderDiscount);
 
@@ -127,7 +129,7 @@ export function DiscountPicker({
           </Button>
         )}
 
-        <div className="flex flex-col gap-3 border-t border-hairline pt-4">
+        {canEnterFree ? <div className="flex flex-col gap-3 border-t border-hairline pt-4">
           <div className="text-[13px] font-semibold text-steel">FREE ENTRY</div>
           <div className="flex gap-2">
             <Button size="sm" variant={mode === "percent" ? "dark" : "secondary"} onClick={() => setMode("percent")}>
@@ -155,7 +157,7 @@ export function DiscountPicker({
           <Button disabled={freeSpec === null} onClick={() => freeSpec && apply(freeSpec)}>
             Apply {freeSpec ? `− ${formatPeso(amountOf(freeSpec, baseC))}` : "discount"}
           </Button>
-        </div>
+        </div> : <p className="text-sm text-steel">Choose a business discount above. Free-entry discounts are owner-only.</p>}
       </DialogContent>
     </Dialog>
   );

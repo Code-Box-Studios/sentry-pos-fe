@@ -1,10 +1,12 @@
-import { render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { CatalogPayload } from "@/domain/types";
 import { useCartStore } from "@/state/cart";
 import { usePairingStore } from "@/state/pairing";
 import { setViewportWidth } from "@/test/setup";
 import { seedCatalogForTest } from "@/test/utils";
+import { useShiftStore } from "@/state/shift";
+import { useCatalogStore } from "@/state/catalog";
 import SalePage from "@/app/sale/page";
 
 vi.mock("next/navigation", () => ({
@@ -81,4 +83,36 @@ test("phones list products as rows, tablets as tiles", () => {
   render(<SalePage />);
   expect(screen.getByRole("button", { name: /Espresso/ })).toBeInTheDocument();
   expect(screen.getByText("Current sale")).toBeInTheDocument();
+});
+
+test("scanning a variant selects its required modifiers before adding", async () => {
+  const user = userEvent.setup();
+  const product = catalog.products.find(p => p.id === "prod-latte")!;
+  const variant = product.variants[0]!;
+  variant.barcode = "12345678";
+  catalog.modifierGroups.find(g => g.id === "mg-milk")!.minSelect = 1;
+  useCatalogStore.setState({ catalog: { ...catalog } });
+  render(<SalePage />);
+  for (const key of "12345678") fireEvent.keyDown(document, { key });
+  fireEvent.keyDown(document, { key: "Enter" });
+  expect(useCartStore.getState().cart.lines).toHaveLength(0);
+  expect(screen.getByRole("button", { name: /^Add —/ })).toBeDisabled();
+  await user.click(screen.getByRole("button", { name: /Oat milk/ }));
+  await user.click(screen.getByRole("button", { name: /^Add —/ }));
+  expect(useCartStore.getState().cart.lines[0]).toMatchObject({ variantId: variant.id, modifiers: [{ modifierId: "mod-oat" }] });
+});
+
+test("the selling screen notices the day boundary without navigation", () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-09-14T19:59:50Z"));
+  useShiftStore.setState({ shift: { id: "shift", openedAt: "2026-09-14T18:00:00Z", closedAt: null, openingCashC: 0, cashMovements: [] } });
+  catalog.business.dayStartTime = "04:00";
+  useCatalogStore.setState({ catalog: { ...catalog } });
+  const { unmount } = render(<SalePage />);
+  expect(screen.queryByText(/The business day ended/)).toBeNull();
+  act(() => vi.advanceTimersByTime(60000));
+  expect(screen.getByText(/The business day ended at 04:00/)).toBeInTheDocument();
+  unmount();
+  vi.useRealTimers();
+  useShiftStore.setState({ shift: null });
 });

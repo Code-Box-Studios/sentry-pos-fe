@@ -6,6 +6,7 @@ import { computeTotals } from "@/domain/totals";
 import type { PosApi } from "../client";
 import {
   NetworkError,
+  OperatorSessionError,
   PinInvalidError,
   PinLockedError,
   StockConflictError,
@@ -14,11 +15,12 @@ import {
   type StockConflict,
 } from "../errors";
 import type {
-  BusinessSummary, CashMovement, CompletedSale, OwnerSession, PairingResult,
-  SaleDraft, SaleSummary, Shift, ShiftTotals, StockAdjustInput, ZReport,
+  ActionApproval, BusinessSummary, CashMovement, CompletedSale, EmergencyCloseInput, OperatorActivity, OperatorIdentity,
+  OperatorRosterEntry, OperatorUnlock, OwnerSession, PairingResult,
+  LiveShiftTotals, SaleDraft, SaleSummary, Shift, ShiftTotals, StockAdjustInput, ZReport,
 } from "../types";
 import { makeSeedCatalog, SEED_BRANCHES, SEED_BUSINESSES, SEED_OWNER } from "./seed";
-import { loadMockState, saveMockState, type MockState } from "./store";
+import { loadMockState, saveMockState, type MockState, type MockShift } from "./store";
 
 /** Four wrong PINs lock the terminal for five minutes (pos-spec §7 throttling). */
 const PIN_ATTEMPT_LIMIT = 4;
@@ -35,9 +37,69 @@ export interface MockPosApiOptions {
  */
 export class MockPosApi implements PosApi {
   private readonly latencyMs: number;
+  private operatorSession: (OperatorUnlock & { lastActivityAt: number; pinHash: string }) | null = null;
 
   constructor(opts: MockPosApiOptions = {}) {
     this.latencyMs = opts.latencyMs ?? 120;
+  }
+
+  private person(s: MockState, userId: string) {
+    if (userId === "mock-owner") return { userId, name: SEED_OWNER.name, role: "owner" as const,
+      active: true, branchIds: SEED_BRANCHES.map((branch) => branch.id), pinHash: "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92" };
+    return s.staff.find((person) => person.userId === userId && person.active && person.branchIds.includes(s.pairedBranchId ?? "")) ?? null;
+  }
+
+  private async digest(pin: string): Promise<string> {
+    const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pin));
+    return Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  }
+
+  private requireOperator(s: MockState): OperatorIdentity {
+    this.pairedContext(s);
+    const session = this.operatorSession;
+    const person = session && this.person(s, session.operator.userId);
+    if (!session || !person?.pinHash || person.pinHash !== session.pinHash || person.role !== session.operator.role ||
+      Date.parse(session.expiresAt) <= Date.now() || Date.now() - session.lastActivityAt >= 5 * 60000) {
+      this.operatorSession = null;
+      throw new OperatorSessionError("Operator session expired or revoked");
+    }
+    session.lastActivityAt = Date.now();
+    return session.operator;
+  }
+
+  private requireDrawer(s: MockState, operator: OperatorIdentity): MockShift {
+    const shift = this.openShiftOf(s);
+    if (!shift) throw new ValidationError("No shift is open");
+    if (shift.operatorUserId !== operator.userId) throw new ValidationError("Only the original operator may resume this drawer");
+    return shift;
+  }
+
+  private async verifyPin(s: MockState, userId: string, pin?: string): Promise<void> {
+    const person = this.person(s, userId);
+    if (!person?.pinHash) throw new ValidationError("This approver is not ready at this branch");
+    const counters = userId === "mock-owner" ? s : s.staff.find((row) => row.userId === userId)!;
+    if (counters.pinLockedUntil && Date.parse(counters.pinLockedUntil) > Date.now())
+      throw new PinLockedError(Math.ceil((Date.parse(counters.pinLockedUntil) - Date.now()) / 1000));
+    if (await this.digest(pin ?? "") !== person.pinHash) {
+      counters.pinFailCount += 1;
+      if (counters.pinFailCount >= PIN_ATTEMPT_LIMIT) counters.pinLockedUntil = new Date(Date.now() + PIN_LOCK_SECONDS * 1000).toISOString();
+      saveMockState(s);
+      throw new PinInvalidError(Math.max(0, PIN_ATTEMPT_LIMIT - counters.pinFailCount));
+    }
+    counters.pinFailCount = 0; counters.pinLockedUntil = null; saveMockState(s);
+  }
+
+  private async authorize(s: MockState, operator: OperatorIdentity, refund: boolean, pin?: string, approval?: ActionApproval): Promise<string | null> {
+    if (operator.role !== "cashier") {
+      if (!refund) return null;
+      await this.verifyPin(s, operator.userId, pin);
+      return operator.userId;
+    }
+    if (!approval) throw new ValidationError("Manager or owner approval is required");
+    const approver = this.person(s, approval.approverUserId);
+    if (!approver || approver.role === "cashier") throw new ValidationError("A manager or owner must approve");
+    await this.verifyPin(s, approver.userId, approval.pin);
+    return approver.userId;
   }
 
   // ---------------------------------------------------------------- plumbing
@@ -106,6 +168,7 @@ export class MockPosApi implements PosApi {
     s.terminalName = terminalName.trim();
     s.terminalCode = `T${s.terminalPairCount}`;
     s.deviceRevoked = false;
+    this.operatorSession = null;
     s.stock = makeSeedCatalog().stock;
     saveMockState(s);
 
@@ -128,6 +191,7 @@ export class MockPosApi implements PosApi {
     s.terminalName = "";
     s.terminalCode = "";
     s.deviceRevoked = false;
+    this.operatorSession = null;
     saveMockState(s);
   }
 
@@ -159,27 +223,96 @@ export class MockPosApi implements PosApi {
     });
   }
 
+  // Human unlock state is deliberately instance-only, unlike the paired device.
+  async listOperators(): Promise<OperatorRosterEntry[]> {
+    const s = await this.enterPaired();
+    this.pairedContext(s);
+    return [{ userId: "mock-owner", name: SEED_OWNER.name, role: "owner", requiresSetup: false },
+      ...s.staff.filter((person) => person.active && person.branchIds.includes(s.pairedBranchId ?? ""))
+        .map(({ userId, name, role, pinHash }) => ({ userId, name, role, requiresSetup: !pinHash }))];
+  }
+
+  async unlockOperator(userId: string, pin: string): Promise<OperatorUnlock> {
+    const s = await this.enterPaired();
+    this.pairedContext(s);
+    const person = this.person(s, userId);
+    if (!person) throw new ValidationError("Operator is not assigned here");
+    if (!person.pinHash) throw new ValidationError("Change your temporary PIN first");
+    await this.verifyPin(s, userId, pin);
+    const shift = this.openShiftOf(s);
+    if (shift && shift.operatorUserId !== userId) throw new ValidationError("Only the original operator may resume this drawer");
+    const operator: OperatorIdentity = { userId, name: person.name, role: person.role };
+    const session: OperatorUnlock = {
+      operator, token: `mock-operator-${newId()}`,
+      expiresAt: new Date(Date.now() + 12 * 60 * 60_000).toISOString(),
+    };
+    this.operatorSession = { ...session, lastActivityAt: Date.now(), pinHash: person.pinHash };
+    return session;
+  }
+
+  async setupOperatorPin(userId: string, temporaryPin: string, newPin: string): Promise<OperatorUnlock> {
+    const s = await this.enterPaired();
+    if (!/^\d{6}$/.test(newPin) || newPin === temporaryPin) throw new ValidationError("Choose a different six-digit PIN");
+    const person = s.staff.find((row) => row.userId === userId && row.active && row.branchIds.includes(s.pairedBranchId ?? ""));
+    if (!person?.temporaryPinHash || !person.temporaryExpiresAt || Date.parse(person.temporaryExpiresAt) <= Date.now() || person.temporaryAttempts >= 5)
+      throw new ValidationError("Temporary PIN expired or already used");
+    if (await this.digest(temporaryPin) !== person.temporaryPinHash) {
+      person.temporaryAttempts += 1; saveMockState(s); throw new PinInvalidError(Math.max(0, 5 - person.temporaryAttempts));
+    }
+    const shift = this.openShiftOf(s);
+    if (shift && shift.operatorUserId !== userId) throw new ValidationError("Only the original operator may resume this drawer");
+    person.pinHash = await this.digest(newPin); person.temporaryPinHash = null; person.temporaryExpiresAt = null;
+    saveMockState(s);
+    return this.unlockOperator(userId, newPin);
+  }
+
+  async currentOperator(): Promise<OperatorIdentity> {
+    return this.requireOperator(await this.enterPaired());
+  }
+
+  async lockOperator(): Promise<void> {
+    await this.currentOperator();
+    this.operatorSession = null;
+  }
+
+  async getOperatorActivity(): Promise<OperatorActivity> {
+    const s = await this.enterPaired();
+    const operator = this.requireOperator(s);
+    const own = (userId: string | null | undefined) => operator.role !== "cashier" || userId === operator.userId;
+    return {
+      sales: s.sales.filter((sale) => (!sale.branchId || sale.branchId === s.pairedBranchId) && own(sale.operatorUserId)).slice(-100).reverse().map((sale) => ({ id: sale.id, receiptNo: sale.receiptNo, createdAt: sale.createdAt, status: sale.status, totalC: sale.totals.totalC, operatorUserId: sale.operatorUserId ?? null })),
+      shifts: s.shifts.filter((shift) => (!shift.branchId || shift.branchId === s.pairedBranchId) && own(shift.operatorUserId)).slice(-100).reverse().map((shift) => ({ id: shift.id, openedAt: shift.openedAt, closedAt: shift.closedAt, operatorUserId: shift.operatorUserId ?? null, overShortC: shift.closedAt ? shift.overShortC ?? null : null })),
+    };
+  }
+
   // ---------------------------------------------------------------- shifts
 
-  private openShiftOf(s: MockState): Shift | null {
-    return s.shifts.find((sh) => sh.closedAt === null) ?? null;
+  private openShiftOf(s: MockState): MockShift | null {
+    return s.shifts.find((sh) => sh.closedAt === null && (!sh.branchId || sh.branchId === s.pairedBranchId) && (!sh.terminalCode || sh.terminalCode === s.terminalCode)) ?? null;
   }
 
   async getCurrentShift(): Promise<Shift | null> {
     const s = await this.enterPaired();
-    return structuredClone(this.openShiftOf(s));
+    const shift = this.openShiftOf(s);
+    if (!shift) return null;
+    const operator = this.operatorSession ? this.requireOperator(s) : null;
+    if (operator) this.requireDrawer(s, operator);
+    return structuredClone(!operator || s.blindCloseEnabled ? { ...shift, openingCashC: null, cashMovements: [] } : shift);
   }
 
   async openShift(openingCashC: number): Promise<Shift> {
     const s = await this.enterPaired();
+    const operator = this.requireOperator(s);
     if (this.openShiftOf(s)) throw new ValidationError("A shift is already open on this terminal");
     if (!Number.isInteger(openingCashC) || openingCashC < 0) throw new ValidationError("Opening float must be zero or more");
-    const shift: Shift = {
+    const shift: MockShift = {
       id: newId(),
       openedAt: nowIso(),
       closedAt: null,
       openingCashC,
       cashMovements: [],
+      operatorUserId: operator.userId,
+      branchId: s.pairedBranchId!, terminalCode: s.terminalCode,
     };
     s.shifts.push(shift);
     saveMockState(s);
@@ -188,8 +321,8 @@ export class MockPosApi implements PosApi {
 
   async addCashMovement(input: { type: "in" | "out"; amountC: number; reason: string }): Promise<CashMovement> {
     const s = await this.enterPaired();
-    const shift = this.openShiftOf(s);
-    if (!shift) throw new ValidationError("No shift is open");
+    const operator = this.requireOperator(s);
+    const shift = this.requireDrawer(s, operator);
     if (!Number.isInteger(input.amountC) || input.amountC <= 0) throw new ValidationError("Amount must be more than zero");
     if (!input.reason.trim()) throw new ValidationError("A reason is required");
     const movement: CashMovement = {
@@ -198,6 +331,7 @@ export class MockPosApi implements PosApi {
       amountC: input.amountC,
       reason: input.reason.trim(),
       at: nowIso(),
+      operatorUserId: operator.userId,
     };
     shift.cashMovements.push(movement);
     saveMockState(s);
@@ -209,6 +343,7 @@ export class MockPosApi implements PosApi {
    * does not un-sell it, it subtracts separately (pos-spec §8).
    */
   private totalsFor(s: MockState, shift: Shift): ShiftTotals {
+    if (shift.openingCashC === null) throw new ValidationError("The stored opening cash is unavailable");
     const ofShift = s.sales.filter((sale) => sale.shiftId === shift.id);
     const sold = ofShift.filter((sale) => sale.status !== "voided");
     const voided = ofShift.filter((sale) => sale.status === "voided");
@@ -243,31 +378,53 @@ export class MockPosApi implements PosApi {
     };
   }
 
-  async getShiftTotals(): Promise<ShiftTotals> {
+  async getShiftTotals(): Promise<LiveShiftTotals> {
     const s = await this.enterPaired();
-    const shift = this.openShiftOf(s);
-    if (!shift) throw new ValidationError("No shift is open");
-    return this.totalsFor(s, shift);
+    const shift = this.requireDrawer(s, this.requireOperator(s));
+    const totals = this.totalsFor(s, shift);
+    return s.blindCloseEnabled ? { ...totals, blindCloseEnabled: true, byMethod: { ...totals.byMethod, cash: null }, cashSalesC: null, cashRefundsC: null, cashInC: null, cashOutC: null, expectedCashC: null } : totals;
   }
 
   async closeShift(countedCashC: number): Promise<ZReport> {
     const s = await this.enterPaired();
-    const { branch } = this.pairedContext(s);
+    const operator = this.requireOperator(s);
+    const shift = this.requireDrawer(s, operator);
+    return this.finishClose(s, shift, countedCashC, operator.userId);
+  }
+
+  async emergencyCloseShift(input: EmergencyCloseInput): Promise<ZReport> {
+    const s = await this.enterPaired();
     const shift = this.openShiftOf(s);
     if (!shift) throw new ValidationError("No shift is open");
+    const original = shift.operatorUserId ? this.person(s, shift.operatorUserId) : null;
+    if (original?.pinHash) throw new ValidationError("An active shift operator must close their own drawer");
+    if (!input.reason.trim()) throw new ValidationError("An emergency close reason is required");
+    const approver = this.person(s, input.approval.approverUserId);
+    if (!approver || approver.role === "cashier") throw new ValidationError("A manager or owner must approve");
+    await this.verifyPin(s, approver.userId, input.approval.pin);
+    return this.finishClose(s, shift, input.countedCashC, approver.userId, input.reason.trim());
+  }
+
+  private finishClose(s: MockState, shift: MockShift, countedCashC: number, closerId: string, reason?: string): ZReport {
+    const { branch } = this.pairedContext(s);
     if (!Number.isInteger(countedCashC) || countedCashC < 0) throw new ValidationError("Counted cash must be zero or more");
 
     const totals = this.totalsFor(s, shift);
     const closedAt = nowIso();
     shift.closedAt = closedAt;
+    shift.closedByUserId = closerId; shift.emergencyCloseReason = reason ?? null;
+    shift.overShortC = countedCashC - totals.expectedCashC;
     saveMockState(s);
 
     return {
       ...totals,
       shiftId: shift.id,
+      operatorUserId: shift.operatorUserId,
+      closedByUserId: closerId,
+      emergencyCloseReason: reason ?? null,
       openedAt: shift.openedAt,
       closedAt,
-      openingCashC: shift.openingCashC,
+      openingCashC: shift.openingCashC ?? 0,
       countedCashC,
       overShortC: countedCashC - totals.expectedCashC,
       branchCode: branch.code,
@@ -300,6 +457,8 @@ export class MockPosApi implements PosApi {
 
   async adjustStock(input: StockAdjustInput): Promise<StockLevel> {
     const s = await this.enterPaired();
+    const operator = this.requireOperator(s);
+    const approvedBy = await this.authorize(s, operator, false, undefined, input.approval);
     if (!(input.newQty >= 0)) throw new ValidationError("Quantity cannot be negative");
 
     const i = this.levelIndex(s, input.productId, input.variantId);
@@ -319,6 +478,7 @@ export class MockPosApi implements PosApi {
       reasonCategory: input.reasonCategory,
       note: input.note,
       at: nowIso(),
+      operatorUserId: operator.userId, approvedByUserId: approvedBy,
     });
     saveMockState(s);
     return structuredClone(i === -1 ? level : s.stock[i]!);
@@ -335,12 +495,36 @@ export class MockPosApi implements PosApi {
     );
   }
 
+  private receipt(row: MockState["sales"][number]): CompletedSale {
+    const result = structuredClone(row);
+    delete result.branchId;
+    delete result.terminalCode;
+    return result;
+  }
+
   async completeSale(draft: SaleDraft): Promise<CompletedSale> {
     const s = await this.enterPaired();
+    const operator = this.requireOperator(s);
     const { business } = this.pairedContext(s);
-    const shift = this.openShiftOf(s);
-    if (!shift || shift.id !== draft.shiftId) throw new ValidationError("The sale's shift is not open");
-    if (s.sales.some((sale) => sale.id === draft.id)) throw new ValidationError("Sale already recorded");
+    const recorded = s.sales.find((sale) => sale.id === draft.id);
+    if (recorded) {
+      if (recorded.operatorUserId !== operator.userId || (recorded.terminalCode && recorded.terminalCode !== s.terminalCode)) throw new ValidationError("This sale belongs to another operator or terminal");
+      return this.receipt(recorded);
+    }
+    const shift = this.requireDrawer(s, operator);
+    if (shift.id !== draft.shiftId || (draft.operatorUserId !== undefined && draft.operatorUserId !== operator.userId)) throw new ValidationError("The sale's operator or shift does not match");
+    if (!business.allowMiscItems && draft.lines.some((line) => line.productId === null)) throw new ValidationError("Miscellaneous items are disabled");
+    const named = makeSeedCatalog().discounts;
+    const validDiscount = (discount: SaleDraft["orderDiscount"], target: "line" | "order") => {
+      if (!discount) return;
+      if (discount.source === "free") {
+        if (operator.role !== "owner") throw new ValidationError("Free-entry discounts are owner-only");
+      } else if (!named.some((row) => row.id === discount.discountId && row.active && row.kind === discount.kind && row.value === discount.value && (row.appliesTo === target || row.appliesTo === "both"))) {
+        throw new ValidationError("Choose an active business discount");
+      }
+    };
+    validDiscount(draft.orderDiscount, "order");
+    for (const line of draft.lines) validDiscount(line.discount, "line");
 
     // The server recomputes rather than trusting the client, and so does the mock.
     const recomputed = computeTotals(
@@ -389,6 +573,7 @@ export class MockPosApi implements PosApi {
 
     const sale: CompletedSale = {
       ...structuredClone(draft),
+      operatorUserId: operator.userId,
       status: "completed",
       statusReason: null,
       createdAt: nowIso(),
@@ -396,16 +581,17 @@ export class MockPosApi implements PosApi {
       refundedAt: null,
       refundShiftId: null,
     };
-    s.sales.push(sale);
+    s.sales.push({ ...sale, branchId: s.pairedBranchId!, terminalCode: s.terminalCode });
     saveMockState(s);
-    return structuredClone(sale);
+    return this.receipt(sale);
   }
 
   async listSales(filter: { date: string | null }): Promise<SaleSummary[]> {
     const s = await this.enterPaired();
+    this.requireOperator(s);
     return s.sales
       .map((sale, index) => ({ sale, index }))
-      .filter(({ sale }) => filter.date === null || manilaDateKey(sale.createdAt) === filter.date)
+      .filter(({ sale }) => (!sale.branchId || sale.branchId === s.pairedBranchId) && (!sale.terminalCode || sale.terminalCode === s.terminalCode) && (filter.date === null || manilaDateKey(sale.createdAt) === filter.date))
       // Sales inside the same millisecond fall back to append order, newest last written first.
       .sort((a, b) => b.sale.createdAt.localeCompare(a.sale.createdAt) || b.index - a.index)
       .map(({ sale }) => ({
@@ -427,7 +613,7 @@ export class MockPosApi implements PosApi {
     const s = await this.enterPaired();
     const sale = s.sales.find((row) => row.id === id);
     if (!sale) throw new ValidationError("Sale not found");
-    return structuredClone(sale);
+    return this.receipt(sale);
   }
 
   /** Void and refund both put the goods back on the shelf (pos-spec §9). */
@@ -438,43 +624,33 @@ export class MockPosApi implements PosApi {
     }
   }
 
-  async voidSale(id: string, reason: string): Promise<CompletedSale> {
+  async voidSale(id: string, reason: string, approval?: ActionApproval): Promise<CompletedSale> {
     const s = await this.enterPaired();
+    const operator = this.requireOperator(s);
+    const approvedBy = await this.authorize(s, operator, false, undefined, approval);
     const sale = s.sales.find((row) => row.id === id);
     if (!sale) throw new ValidationError("Sale not found");
     if (sale.status !== "completed") throw new ValidationError(`A ${sale.status} sale cannot be voided`);
     if (!reason.trim()) throw new ValidationError("A reason is required");
-    const shift = this.openShiftOf(s);
-    if (!shift || shift.id !== sale.shiftId) {
+    const shift = this.requireDrawer(s, operator);
+    if (shift.id !== sale.shiftId) {
       throw new ValidationError("Voids only while the sale's shift is open — refund it instead");
     }
 
     sale.status = "voided";
     sale.voidedAt = nowIso();
     sale.statusReason = reason.trim();
+    sale.statusRequestedByUserId = operator.userId;
+    sale.statusApprovedByUserId = approvedBy;
     this.returnStock(s, sale);
     saveMockState(s);
-    return structuredClone(sale);
+    return this.receipt(sale);
   }
 
-  async refundSale(id: string, reason: string, pin: string): Promise<CompletedSale> {
+  async refundSale(id: string, reason: string, pin?: string, approval?: ActionApproval): Promise<CompletedSale> {
     const s = await this.enterPaired();
-
-    // The PIN gate runs first — a locked terminal never reveals whether the sale is refundable.
-    if (s.pinLockedUntil && Date.parse(s.pinLockedUntil) > Date.now()) {
-      const retryAfterSeconds = Math.ceil((Date.parse(s.pinLockedUntil) - Date.now()) / 1000);
-      throw new PinLockedError(retryAfterSeconds);
-    }
-    if (pin !== SEED_OWNER.refundPin) {
-      s.pinFailCount += 1;
-      if (s.pinFailCount >= PIN_ATTEMPT_LIMIT) {
-        s.pinLockedUntil = new Date(Date.now() + PIN_LOCK_SECONDS * 1000).toISOString();
-      }
-      saveMockState(s);
-      throw new PinInvalidError(Math.max(0, PIN_ATTEMPT_LIMIT - s.pinFailCount));
-    }
-    s.pinFailCount = 0;
-    s.pinLockedUntil = null;
+    const operator = this.requireOperator(s);
+    const approvedBy = await this.authorize(s, operator, true, pin, approval);
 
     const sale = s.sales.find((row) => row.id === id);
     if (!sale) throw new ValidationError("Sale not found");
@@ -482,13 +658,16 @@ export class MockPosApi implements PosApi {
     if (!reason.trim()) throw new ValidationError("A reason is required");
 
     const shift = this.openShiftOf(s);
+    if (shift) this.requireDrawer(s, operator);
     sale.status = "refunded";
     sale.refundedAt = nowIso();
     sale.statusReason = reason.trim();
+    sale.statusRequestedByUserId = operator.userId;
+    sale.statusApprovedByUserId = approvedBy;
     // Only a refund taken during the sale's own shift touches that shift's expected cash.
     sale.refundShiftId = shift && shift.id === sale.shiftId ? shift.id : null;
     this.returnStock(s, sale);
     saveMockState(s);
-    return structuredClone(sale);
+    return this.receipt(sale);
   }
 }

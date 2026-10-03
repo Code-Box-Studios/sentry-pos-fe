@@ -5,7 +5,7 @@ import type { Shift, ZReport } from "@/api/types";
 interface ShiftState {
   shift: Shift | null;
   hydrated: boolean;
-  load(): Promise<void>;
+  load(operatorToken?: string): Promise<void>;
   open(openingCashC: number): Promise<void>;
   addCashMovement(type: "in" | "out", amountC: number, reason: string): Promise<void>;
   close(countedCashC: number): Promise<ZReport>;
@@ -16,9 +16,9 @@ interface ShiftState {
 export const useShiftStore = create<ShiftState>()((set) => ({
   shift: null,
   hydrated: false,
-  load: async () => {
+  load: async (operatorToken) => {
     try {
-      const shift = await getApi().getCurrentShift();
+      const shift = await getApi().getCurrentShift(operatorToken);
       set({ shift, hydrated: true });
     } catch (e) {
       // TerminalGate waits on `hydrated` to pick a landing route, so this has to settle even when

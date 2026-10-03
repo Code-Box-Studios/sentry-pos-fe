@@ -134,3 +134,23 @@ test("the misc modal creates an off-catalog line", async () => {
   expect(line.productId).toBeNull();
   expect(line.unitPriceC).toBe(15000);
 });
+
+test("a weight variant with modifiers can begin below one kilogram", async () => {
+  const user = userEvent.setup();
+  const product = { ...find("prod-latte"), soldBy: "weight" as const, trackStock: true };
+  useCatalogStore.setState({ catalog: { ...catalog, products: catalog.products.map(p => p.id === product.id ? product : p) }, stock: new Map([[`${product.id}:var-latte-l`, 0.75]]) });
+  expect(useCatalogStore.getState().availableQty(product.id, "var-latte-l")).toBe(0.75);
+  render(<VariantModifierSheet product={product} onClose={onClose} />);
+  await user.click(screen.getByRole("button", { name: /Large/ }));
+  await user.click(screen.getByRole("button", { name: /Oat milk/ }));
+  await user.type(screen.getByLabelText("Weight (kg)"), "0.250");
+  await user.click(screen.getByRole("button", { name: "Add — ₱42.50" }));
+  expect(useCartStore.getState().cart.lines[0]).toMatchObject({ qty: 0.25, variantId: "var-latte-l" });
+  expect(onClose).toHaveBeenCalled();
+});
+
+test.each(["0", "-1", "0.1234", "NaN"])("invalid weight %s cannot reach the cart", async weight => {
+  render(<VariantModifierSheet product={{ ...find("prod-rice"), modifierGroupIds: ["mg-milk"] }} onClose={onClose} />);
+  await userEvent.setup().type(screen.getByLabelText("Weight (kg)"), weight);
+  expect(addButton()).toBeDisabled();
+});

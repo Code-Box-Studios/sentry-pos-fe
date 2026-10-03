@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { getApi } from "@/api";
 import { ApiError, PinInvalidError, PinLockedError } from "@/api/errors";
-import type { CompletedSale } from "@/api/types";
+import type { ActionApproval, CompletedSale } from "@/api/types";
+import { ActionApprovalForm, approvalReady } from "@/components/chrome/ActionApprovalForm";
 import { PinEntry } from "@/components/numpad/PinEntry";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -12,10 +13,12 @@ import { Label } from "@/components/ui/label";
 import { formatPeso } from "@/lib/money";
 import { useCatalogStore } from "@/state/catalog";
 import { useShiftStore } from "@/state/shift";
+import { useOperatorStore } from "@/state/operator";
+import { handleApiError } from "@/lib/handle-api-error";
 
 const PIN_LENGTH = 6;
 
-/** Refunds are allowed any time, but always behind the owner's PIN (pos-spec §7). */
+/** A cashier needs one-action approval; a privileged operator confirms their own PIN. */
 export function RefundDialog({
   sale,
   open,
@@ -34,6 +37,9 @@ export function RefundDialog({
   const [error, setError] = useState<string | null>(null);
   const [locked, setLocked] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [approval, setApproval] = useState<ActionApproval | null>(null);
+  const role = useOperatorStore((s) => s.operator?.role);
+  const needsApproval = role !== "owner" && role !== "manager";
 
   useEffect(() => {
     if (open) {
@@ -41,22 +47,27 @@ export function RefundDialog({
       setPin("");
       setError(null);
       setLocked(false);
+      setApproval(null);
     }
   }, [open]);
 
   const inShift = shift !== null && shift.id === sale.shiftId;
 
   async function submit() {
-    if (reason.trim() === "" || pin.length !== PIN_LENGTH || busy || locked) return;
+    if (reason.trim() === "" || busy || locked || (needsApproval ? !approvalReady(approval) : pin.length !== PIN_LENGTH)) return;
     setBusy(true);
     setError(null);
     try {
-      const updated = await getApi().refundSale(sale.id, reason.trim(), pin);
+      const updated = await getApi().refundSale(sale.id, reason.trim(), needsApproval ? undefined : pin, needsApproval ? approval! : undefined);
+      setPin("");
+      setApproval(null);
       onDone(updated);
       await refreshStock(); // returned stock un-blocks OUT tiles
       onClose();
     } catch (e) {
       setPin("");
+      setApproval((value) => value ? { ...value, pin: "" } : null);
+      try { handleApiError(e); } catch { /* Keep validation/PIN errors in this dialog. */ }
       if (e instanceof PinLockedError) {
         setLocked(true);
         setError(`Locked — try again in ${Math.max(1, Math.ceil(e.retryAfterSeconds / 60))} min`);
@@ -91,15 +102,16 @@ export function RefundDialog({
           />
         </div>
 
-        <div className="flex flex-col items-center gap-2.5">
-          <div className="text-[13px] font-semibold text-steel">ENTER OWNER PIN</div>
+        {needsApproval ? <ActionApprovalForm value={approval} onChange={(value) => { setApproval(value); setLocked(false); }} disabled={busy} /> : <div className="flex flex-col items-center gap-2.5">
+          <div className="text-[13px] font-semibold text-steel">{role === "manager" ? "ENTER YOUR MANAGER PIN" : "ENTER OWNER PIN"}</div>
           <PinEntry value={pin} onChange={setPin} length={PIN_LENGTH} disabled={locked} />
           {error ? (
             <p className="text-sm font-semibold text-danger">{error}</p>
           ) : (
             <p className="text-xs text-stone">Failed attempts are logged and throttled.</p>
           )}
-        </div>
+        </div>}
+        {needsApproval && error && <p role="alert" className="text-sm font-semibold text-danger">{error}</p>}
 
         <div className="flex gap-2.5">
           <Button variant="secondary" className="flex-1" onClick={onClose}>
@@ -108,7 +120,7 @@ export function RefundDialog({
           <Button
             variant="destructive"
             className="flex-1"
-            disabled={busy || locked || reason.trim() === "" || pin.length !== PIN_LENGTH}
+            disabled={busy || locked || reason.trim() === "" || (needsApproval ? !approvalReady(approval) : pin.length !== PIN_LENGTH)}
             onClick={submit}
           >
             Refund {formatPeso(sale.totals.totalC)}

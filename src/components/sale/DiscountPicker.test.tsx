@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { CatalogPayload, Product } from "@/domain/types";
 import { useCartStore } from "@/state/cart";
+import { useOperatorStore } from "@/state/operator";
 import { seedCatalogForTest } from "@/test/utils";
 import { DiscountPicker } from "./DiscountPicker";
 import { ScPwdModal } from "./ScPwdModal";
@@ -16,6 +17,16 @@ beforeEach(() => {
   catalog = seedCatalogForTest();
   useCartStore.getState().resetAll();
   onClose.mockClear();
+  useOperatorStore.getState().unlock({ operator: { userId: "owner-1", name: "Maria", role: "owner" }, token: "owner-token", expiresAt: new Date(Date.now() + 43_200_000).toISOString() });
+});
+
+test.each(["cashier", "manager"] as const)("%s can use named discounts but cannot enter a free discount", (role) => {
+  useOperatorStore.setState({ operator: { userId: "staff-1", name: "Ana", role } });
+  useCartStore.getState().addProduct(find("prod-espresso"));
+  render(<DiscountPicker target={{ kind: "order" }} open onClose={onClose} />);
+  expect(screen.getByRole("button", { name: /Merienda 10%/ })).toBeInTheDocument();
+  expect(screen.queryByText("FREE ENTRY")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Percent" })).not.toBeInTheDocument();
 });
 
 test("a line picker offers line and both-scoped discounts, never order-only ones", async () => {

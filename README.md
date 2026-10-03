@@ -1,5 +1,9 @@
 # sentry-pos-fe — Sentry POS terminal
 
+## Online release update — 2026-09-15
+
+Use Node22 (see `.nvmrc`). Checkout now supports line discounts, configured fractional quantities, modifier-aware barcode entry, immutable payment retries and refreshed receipt logos. CI runs tests, lint, builds and production dependency audits. Consult `../DEPLOYMENT.md` for configuration and `../DEPLOYMENT_READINESS.md` for actual validation and external release requirements. Older milestone notes below are historical; offline sync and staff remain later work.
+
 The owner-operated point-of-sale terminal for **Sentry**, a POS system for Philippine small
 businesses: pair a device to one branch, open a shift, sell, take payment, print a receipt, and
 close the drawer with a Z reading. Built as a **fully static Next.js export** — no server

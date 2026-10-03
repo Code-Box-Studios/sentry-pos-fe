@@ -201,3 +201,12 @@ test("listSales: newest first with today filter", async () => {
   expect(today.length).toBe(2);
   expect(await api.listSales({ date: "2000-01-01" })).toEqual([]);
 });
+
+test("sale replay returns the stored receipt even after its shift closes", async () => {
+  const shift = await api.openShift(0);
+  const request = draft([pandesalLine(2)], shift.id);
+  const sale = await api.completeSale(request);
+  await api.closeShift(2400);
+  expect(await api.completeSale(request)).toEqual(sale);
+  expect((await api.getStockLevels()).find(s => s.productId === "prod-pandesal")!.qty).toBe(6);
+});

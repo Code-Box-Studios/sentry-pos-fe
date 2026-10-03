@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ShiftTotals } from "@/api/types";
+import type { LiveShiftTotals, ShiftTotals } from "@/api/types";
 import { MoneyPad } from "@/components/numpad/MoneyPad";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,8 +26,8 @@ export function ClosePanel({
   onClose,
   busy,
 }: {
-  totals: ShiftTotals;
-  openingCashC: number;
+  totals: LiveShiftTotals;
+  openingCashC: number | null;
   heldCount: number;
   countedCashC: number | null;
   onCountedChange(c: number | null): void;
@@ -36,7 +36,8 @@ export function ClosePanel({
 }) {
   const [padOpen, setPadOpen] = useState(false);
   const blockedByHolds = heldCount > 0;
-  const overShortC = (countedCashC ?? 0) - totals.expectedCashC;
+  const blind = totals.blindCloseEnabled === true;
+  const overShortC = totals.expectedCashC === null ? null : (countedCashC ?? 0) - totals.expectedCashC;
   const counted = countedCashC !== null;
 
   return (
@@ -62,12 +63,12 @@ export function ClosePanel({
           </button>
         </div>
 
-        <div className="flex flex-1 flex-col gap-0.5">
-          <div className="text-[13px] text-steel">{expectedBreakdown(totals, openingCashC)}</div>
+        {!totals.blindCloseEnabled && <div className="flex flex-1 flex-col gap-0.5">
+          <div className="text-[13px] text-steel">{expectedBreakdown(totals, openingCashC ?? 0)}</div>
           <div className="font-mono text-lg font-semibold text-ink">{formatPeso(totals.expectedCashC)}</div>
-        </div>
+        </div>}
 
-        <div className="flex flex-col items-end gap-0.5">
+        {overShortC !== null && <div className="flex flex-col items-end gap-0.5">
           <div className="text-[13px] text-steel">Over / short</div>
           <div
             className={`rounded-full px-3 py-1 font-mono text-base font-bold ${
@@ -77,7 +78,8 @@ export function ClosePanel({
             {overShortC >= 0 ? "+" : "−"}
             {formatC(Math.abs(overShortC))}
           </div>
-        </div>
+        </div>}
+        {blind && <p className="max-w-xs text-sm text-steel">Expected cash and over/short are revealed after you submit your count.</p>}
 
         <Button className="h-12 px-6" disabled={busy || blockedByHolds || !counted} onClick={onClose}>
           Close &amp; print Z
@@ -88,7 +90,7 @@ export function ClosePanel({
         <DialogContent className="gap-5 rounded-xl sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-ink">Count the drawer</DialogTitle>
-            <p className="text-sm text-steel">Over/short is shown, never blocked — centavo noise is expected.</p>
+            <p className="text-sm text-steel">{blind ? "Submit your independent count. The Z report will show expected cash and over/short after closing." : "Over/short is shown, never blocked — centavo noise is expected."}</p>
           </DialogHeader>
           <MoneyPad label="Counted cash" valueC={countedCashC} onChange={onCountedChange} />
           <Button onClick={() => setPadOpen(false)}>Done</Button>

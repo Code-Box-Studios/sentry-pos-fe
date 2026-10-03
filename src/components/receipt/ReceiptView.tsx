@@ -54,6 +54,11 @@ export function ReceiptView({
   return (
     <div className="flex flex-col gap-3 bg-white p-5 font-mono text-xs leading-relaxed text-ink">
       <div className="flex flex-col gap-0.5 text-center">
+        {business.logoUrl && (
+          // A plain image keeps remote business branding compatible with static export and printing.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={business.logoUrl} alt={`${business.name} logo`} className="mx-auto max-h-24 max-w-full object-contain" />
+        )}
         <div className="text-sm font-semibold">{business.name.toUpperCase()}</div>
         <div>{branch.name} Branch</div>
         {branch.address && <div>{branch.address}</div>}

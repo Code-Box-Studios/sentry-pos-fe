@@ -10,6 +10,23 @@ import type { CartLine, DiscountSpec, ScPwdInfo } from "@/domain/cart";
 import type { CartTotals } from "@/domain/totals";
 
 export interface OwnerSession { token: string; email: string; ownerName: string }
+export interface OperatorIdentity {
+  userId: string;
+  name: string;
+  role: "owner" | "manager" | "cashier";
+}
+export interface OperatorRosterEntry extends OperatorIdentity { requiresSetup: boolean }
+export interface OperatorUnlock {
+  operator: OperatorIdentity;
+  token: string;
+  expiresAt: string;
+}
+export interface ActionApproval { approverUserId: string; pin: string }
+export interface EmergencyCloseInput { countedCashC: number; reason: string; approval: ActionApproval }
+export interface OperatorActivity {
+  sales: Array<{ id: string; receiptNo: string; createdAt: string; status: SaleStatus; totalC: number; operatorUserId: string | null }>;
+  shifts: Array<{ id: string; openedAt: string; closedAt: string | null; operatorUserId: string | null; overShortC: number | null }>;
+}
 export interface BusinessSummary { id: string; name: string; type: BusinessType; isDemo: boolean }
 export interface PairingResult {
   deviceToken: string;
@@ -35,6 +52,7 @@ export interface SaleDraft {
   id: string;                 // client uuid
   receiptNo: string;          // terminal-assigned
   shiftId: string;
+  operatorUserId?: string | null;
   orderType: OrderType;
   lines: CartLine[];
   orderDiscount: DiscountSpec | null;
@@ -53,6 +71,8 @@ export interface CompletedSale extends SaleDraft {
   voidedAt: string | null;
   refundedAt: string | null;
   refundShiftId: string | null; // open shift whose cash the refund hit; null = outside shift
+  statusRequestedByUserId?: string | null;
+  statusApprovedByUserId?: string | null;
 }
 
 export interface SaleSummary {
@@ -61,8 +81,8 @@ export interface SaleSummary {
   status: SaleStatus; statusReason: string | null; totalC: number; scPwd: boolean;
 }
 
-export interface CashMovement { id: string; type: "in" | "out"; amountC: number; reason: string; at: string }
-export interface Shift { id: string; openedAt: string; closedAt: string | null; openingCashC: number; cashMovements: CashMovement[] }
+export interface CashMovement { id: string; type: "in" | "out"; amountC: number; reason: string; at: string; operatorUserId?: string | null }
+export interface Shift { id: string; openedAt: string; closedAt: string | null; openingCashC: number | null; cashMovements: CashMovement[]; operatorUserId?: string | null; closedByUserId?: string | null; emergencyCloseReason?: string | null }
 
 export interface ShiftTotals {
   grossC: number; saleCount: number;
@@ -78,7 +98,16 @@ export interface ZReport extends ShiftTotals {
   shiftId: string; openedAt: string; closedAt: string;
   openingCashC: number; countedCashC: number; overShortC: number;
   branchCode: string; terminalCode: string;
+  operatorUserId?: string | null; closedByUserId?: string | null; emergencyCloseReason?: string | null;
 }
+
+export type LiveShiftTotals = (ShiftTotals & { blindCloseEnabled?: false }) | (
+  Omit<ShiftTotals, 'byMethod' | 'cashSalesC' | 'cashRefundsC' | 'cashInC' | 'cashOutC' | 'expectedCashC'> & {
+    blindCloseEnabled: true;
+    byMethod: Omit<Record<PaymentMethod, number>, 'cash'> & { cash: null };
+    cashSalesC: null; cashRefundsC: null; cashInC: null; cashOutC: null; expectedCashC: null;
+  }
+);
 
 export interface StockAdjustInput {
   productId: string;
@@ -86,4 +115,5 @@ export interface StockAdjustInput {
   newQty: number;
   reasonCategory: AdjustReason;
   note: string | null;
+  approval?: ActionApproval;
 }

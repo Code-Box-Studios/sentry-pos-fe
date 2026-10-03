@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getApi } from "@/api";
-import { StockConflictError } from "@/api/errors";
+import { StockConflictError, ValidationError } from "@/api/errors";
 import type { SaleDraft } from "@/api/types";
 import { CashPanel } from "@/components/payment/CashPanel";
 import { MethodPills } from "@/components/payment/MethodPills";
@@ -18,6 +18,7 @@ import { nowIso } from "@/lib/time";
 import { useCartStore } from "@/state/cart";
 import { useCatalogStore } from "@/state/catalog";
 import { useLastSaleStore } from "@/state/lastSale";
+import { useOperatorStore } from "@/state/operator";
 import { usePairingStore } from "@/state/pairing";
 import { useShiftStore } from "@/state/shift";
 
@@ -38,33 +39,35 @@ export default function PaymentPage() {
   const terminalCode = usePairingStore((s) => s.terminalCode ?? "—");
   const setLastSale = useLastSaleStore((s) => s.set);
 
-  const [method, setMethod] = useState<PaymentMethod>("cash");
-  const [tenderedC, setTenderedC] = useState<number | null>(null);
-  const [referenceNo, setReferenceNo] = useState("");
+  const pending = useCartStore(s => s.pendingDraft);
+  const submitting = useRef(false);
+  const [method, setMethod] = useState<PaymentMethod>(pending?.payment.method ?? "cash");
+  const [tenderedC, setTenderedC] = useState<number | null>(pending?.payment.tenderedC ?? null);
+  const [referenceNo, setReferenceNo] = useState(pending?.payment.referenceNo ?? "");
   const [busy, setBusy] = useState(false);
 
-  const totals = useCartStore((s) => s.totals)({
+  const computeTotals = useCartStore((s) => s.totals);
+  const totals = pending?.totals ?? computeTotals({
     taxRate: business?.taxRate ?? 0,
     serviceChargeRate: business?.serviceChargeRate ?? 0,
   });
 
   async function complete() {
-    if (!shift || busy) return;
+    if (submitting.current || (!pending && (!shift || cart.lines.length === 0))) return;
+    submitting.current = true;
     setBusy(true);
     const pairing = usePairingStore.getState();
     const tendered = method === "cash" ? tenderedC ?? 0 : totals.totalC;
 
-    // Stable across retries: a timeout-after-commit replays server-side (same sale id → the
-    // stored sale comes back) instead of colliding on the receipt number.
-    // Known gap: method/tenderedC/referenceNo live in React state, not the cart, so switching
-    // them after a timeout still replays under the OLD values. Reconciliation is offline-milestone work.
+    // Preserve the entire request until the API confirms success or a definitive rejection.
     const { saleId, paymentId } = useCartStore.getState().ensurePendingIds();
 
-    const draft: SaleDraft = {
+    const draft: SaleDraft = pending ?? {
       id: saleId,
       // Peek, never consume: a failed attempt must not burn a receipt number.
       receiptNo: pairing.peekReceiptNo(),
-      shiftId: shift.id,
+      shiftId: shift!.id,
+      operatorUserId: useOperatorStore.getState().operator?.userId ?? null,
       orderType: cart.orderType,
       lines: cart.lines,
       orderDiscount: cart.orderDiscount,
@@ -82,8 +85,10 @@ export default function PaymentPage() {
     };
 
     try {
-      const sale = await getApi().completeSale(draft);
-      pairing.commitReceiptSeq();
+      const snapshot = useCartStore.getState().savePendingDraft(draft);
+      const sale = await getApi().completeSale(snapshot);
+      if (pairing.peekReceiptNo() === snapshot.receiptNo) pairing.commitReceiptSeq();
+      useCartStore.getState().releasePending();
       // The sale is committed and the receipt number spent: nothing below may throw, or the
       // cashier is stranded with a paid sale and no receipt. Stock refresh is best-effort only.
       refreshStock().catch(() => {});
@@ -91,12 +96,13 @@ export default function PaymentPage() {
       clearCart();
       router.replace("/receipt");
     } catch (e) {
+      if (e instanceof ValidationError || e instanceof StockConflictError) useCartStore.getState().releasePending();
       if (e instanceof StockConflictError) {
         // Another terminal took the last unit. Keep the cart, show which line, leave the number unused.
         useCartStore.setState({
           conflictLineIds: e.conflicts.map((c) => c.lineId).filter((id): id is string => id !== null),
         });
-        await refreshStock();
+        await refreshStock().catch(() => {});
         toast.error("Stock changed — fix the highlighted line");
         router.replace("/sale");
         return;
@@ -107,6 +113,7 @@ export default function PaymentPage() {
         toast.error(e instanceof Error ? e.message : "Could not complete the sale");
       }
     } finally {
+      submitting.current = false;
       setBusy(false);
     }
   }
@@ -116,7 +123,7 @@ export default function PaymentPage() {
   return (
     <main className="flex h-dvh flex-col bg-surface">
       <header className="flex h-[52px] flex-none items-center gap-4 border-b border-hairline bg-white px-5">
-        <Button variant="ghost" size="sm" onClick={() => router.back()}>
+        <Button variant="ghost" size="sm" disabled={busy || !!pending} onClick={() => router.back()}>
           ← Back to sale
         </Button>
         <div className="flex-1" />
@@ -138,6 +145,10 @@ export default function PaymentPage() {
             </div>
           </div>
 
+          {pending && <div role="status" className="max-w-md rounded border border-hairline p-3 text-sm">
+            This payment is awaiting confirmation. Retry the original payment before changing the sale.
+          </div>}
+          <fieldset disabled={busy || !!pending} className="contents">
           <MethodPills value={method} onChange={setMethod} />
 
           {method === "cash" ? (
@@ -157,6 +168,8 @@ export default function PaymentPage() {
               busy={busy}
             />
           )}
+          </fieldset>
+          {pending && <Button disabled={busy} onClick={complete}>Retry original payment</Button>}
         </section>
 
         <OrderSummaryRail cart={cart} totals={totals} />

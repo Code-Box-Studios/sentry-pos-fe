@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import type { BusinessSettings } from "@/domain/types";
 import { usePairingStore } from "@/state/pairing";
 import { TopBar } from "./TopBar";
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: vi.fn() }) }));
 
 const business = (isDemo: boolean): BusinessSettings => ({
   id: isDemo ? "biz-kape-demo" : "biz-kape",

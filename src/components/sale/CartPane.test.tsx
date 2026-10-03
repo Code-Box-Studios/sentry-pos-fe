@@ -107,3 +107,11 @@ test("removing a line empties the cart", async () => {
   await user.click(screen.getByRole("button", { name: "Remove Espresso" }));
   expect(useCartStore.getState().cart.lines).toHaveLength(0);
 });
+
+test("a new line can open its first discount picker", async () => {
+  useCartStore.getState().addProduct(find("prod-espresso"));
+  const onLineDiscount = vi.fn();
+  pane({ onLineDiscount });
+  await userEvent.setup().click(screen.getByRole("button", { name: "Add line discount" }));
+  expect(onLineDiscount).toHaveBeenCalledWith(useCartStore.getState().cart.lines[0]!.id);
+});

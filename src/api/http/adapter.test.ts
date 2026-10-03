@@ -25,6 +25,68 @@ function stubFetch(response: Response) {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("auth headers", () => {
+  test("unlock can hydrate the drawer with the new token before publishing the operator", async () => {
+    const spy = stubFetch(jsonResponse(200, { id: "shift", openingCashC: 1000 }));
+    const api = new HttpPosApi({ baseUrl: BASE, getDeviceToken: () => "device-secret", getOperatorToken: () => null });
+    await api.getCurrentShift("new-human-token");
+    expect(spy.mock.calls[0][1].headers["X-Operator-Token"]).toBe("new-human-token");
+  });
+  test("one-action approval travels separately and emergency close does not need an operator token", async () => {
+    const spy = vi.fn().mockImplementation(async () => jsonResponse(200, {}));
+    vi.stubGlobal("fetch", spy);
+    const api = new HttpPosApi({ baseUrl: BASE, getDeviceToken: () => "device-secret", getOperatorToken: () => "cashier-secret" });
+    const approval = { approverUserId: "manager-1", pin: "654321" };
+    await api.voidSale("sale-1", "duplicate", approval);
+    await api.refundSale("sale-2", "returned", undefined, approval);
+    await api.emergencyCloseShift({ countedCashC: 5000, reason: "Operator unavailable", approval });
+    expect(JSON.parse(spy.mock.calls[0][1].body)).toEqual({ reason: "duplicate", approval });
+    expect(JSON.parse(spy.mock.calls[1][1].body)).toEqual({ reason: "returned", approval });
+    expect(spy.mock.calls[0][1].headers["X-Operator-Token"]).toBe("cashier-secret");
+    expect(spy.mock.calls[2][0]).toBe(`${BASE}/pos/shifts/current/emergency-close`);
+    expect(spy.mock.calls[2][1].headers).not.toHaveProperty("X-Operator-Token");
+  });
+
+  test("personal activity always sends the operator token", async () => {
+    const spy = stubFetch(jsonResponse(200, { sales: [], shifts: [] }));
+    const api = new HttpPosApi({ baseUrl: BASE, getDeviceToken: () => "device-secret", getOperatorToken: () => "human-secret" });
+    await api.getOperatorActivity();
+    expect(spy.mock.calls[0][0]).toBe(`${BASE}/pos/operators/activity`);
+    expect(spy.mock.calls[0][1].headers["X-Operator-Token"]).toBe("human-secret");
+  });
+  test("operator requests send a separate human token alongside the device token", async () => {
+    const spy = stubFetch(jsonResponse(200, { userId: "owner-1", name: "Maria", role: "owner" }));
+    const api = new HttpPosApi({
+      baseUrl: BASE,
+      getDeviceToken: () => "device-secret",
+      getOperatorToken: () => "human-secret",
+    });
+    await api.currentOperator();
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe(`${BASE}/pos/operators/current`);
+    expect(init.headers).toEqual({
+      Authorization: "Bearer device-secret",
+      "X-Operator-Token": "human-secret",
+    });
+  });
+
+  test("roster and unlock use only the device token", async () => {
+    const spy = vi.fn().mockImplementation(async () => jsonResponse(200, []));
+    vi.stubGlobal("fetch", spy);
+    const api = new HttpPosApi({
+      baseUrl: BASE,
+      getDeviceToken: () => "device-secret",
+      getOperatorToken: () => "human-secret",
+    });
+    await api.listOperators();
+    await api.unlockOperator("owner-1", "123456");
+    for (const [, init] of spy.mock.calls) {
+      expect(init.headers.Authorization).toBe("Bearer device-secret");
+      expect(init.headers).not.toHaveProperty("X-Operator-Token");
+    }
+    expect(spy.mock.calls[1][0]).toBe(`${BASE}/pos/operators/unlock`);
+    expect(JSON.parse(spy.mock.calls[1][1].body)).toEqual({ userId: "owner-1", pin: "123456" });
+  });
+
   test("terminal calls carry the device token from the getter", async () => {
     const spy = stubFetch(jsonResponse(200, []));
     await makeApi().getStockLevels();

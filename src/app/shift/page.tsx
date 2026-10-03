@@ -4,29 +4,26 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getApi } from "@/api";
-import type { ShiftTotals, ZReport } from "@/api/types";
+import type { LiveShiftTotals, ZReport } from "@/api/types";
 import { TopBar } from "@/components/chrome/TopBar";
 import { printNode } from "@/components/receipt/printReceipt";
 import { CashMoveDialog } from "@/components/shift/CashMoveDialog";
 import { CashMovementList } from "@/components/shift/CashMovementList";
 import { ClosePanel } from "@/components/shift/ClosePanel";
-import { DayBoundaryBanner } from "@/components/shift/DayBoundaryBanner";
+import { OpenShiftDayBoundary } from "@/components/shift/OpenShiftDayBoundary";
 import { ShiftTotalsCards } from "@/components/shift/ShiftTotalsCards";
 import { ZReportView } from "@/components/shift/ZReportView";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { crossedDayBoundary } from "@/lib/day-boundary";
 import { handleApiError } from "@/lib/handle-api-error";
 import { nowIso } from "@/lib/time";
 import { useCartStore } from "@/state/cart";
-import { useCatalogStore } from "@/state/catalog";
 import { usePairingStore } from "@/state/pairing";
 import { useSettingsStore } from "@/state/settings";
 import { useShiftStore } from "@/state/shift";
 
 export default function ShiftPage() {
   const router = useRouter();
-  const business = useCatalogStore((s) => s.catalog?.business ?? null);
   const branchCode = usePairingStore((s) => s.branch?.code ?? "");
   const terminalCode = usePairingStore((s) => s.terminalCode ?? "");
   const paperWidth = useSettingsStore((s) => s.paperWidth);
@@ -34,7 +31,7 @@ export default function ShiftPage() {
   const closeShift = useShiftStore((s) => s.close);
   const heldCarts = useCartStore((s) => s.heldCarts);
 
-  const [totals, setTotals] = useState<ShiftTotals | null>(null);
+  const [totals, setTotals] = useState<LiveShiftTotals | null>(null);
   const [countedCashC, setCountedCashC] = useState<number | null>(null);
   const [cashMove, setCashMove] = useState<"in" | "out" | null>(null);
   const [z, setZ] = useState<ZReport | null>(null);
@@ -92,13 +89,13 @@ export default function ShiftPage() {
 
   // A synthesized Z with counted = expected gives the live preview the same component as the real one.
   const preview: ZReport | null =
-    shift && totals
+    shift && totals && !totals.blindCloseEnabled
       ? {
           ...totals,
           shiftId: shift.id,
           openedAt: shift.openedAt,
           closedAt: nowIso(),
-          openingCashC: shift.openingCashC,
+          openingCashC: shift.openingCashC ?? 0,
           countedCashC: countedCashC ?? totals.expectedCashC,
           overShortC: (countedCashC ?? totals.expectedCashC) - totals.expectedCashC,
           branchCode,
@@ -106,13 +103,10 @@ export default function ShiftPage() {
         }
       : null;
 
-  const nagging =
-    shift && business ? crossedDayBoundary(shift.openedAt, business.dayStartTime, nowIso()) : false;
-
   return (
     <main className="flex h-dvh flex-col bg-surface">
       <TopBar active="shift" />
-      {nagging && business && <DayBoundaryBanner dayStartTime={business.dayStartTime} />}
+      <OpenShiftDayBoundary />
 
       <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-6 lg:flex-row">
         <div className="flex flex-1 flex-col gap-4">

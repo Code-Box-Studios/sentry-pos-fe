@@ -1,3 +1,4 @@
+import { DESIGN_SALE } from "@/components/receipt/fixtures";
 import { useCartStore } from "./cart";
 
 beforeEach(() => {
@@ -98,4 +99,19 @@ test("a legacy blob predating pending ids rehydrates with both null", async () =
   expect(useCartStore.getState().cart.lines).toHaveLength(1);
   expect(useCartStore.getState().pendingSaleId).toBeNull();
   expect(useCartStore.getState().pendingPaymentId).toBeNull();
+});
+
+test("an unresolved request protects its cart from edits, clearing and holds", () => {
+  useCartStore.getState().addMisc("Tote bag", 15000);
+  const cart = useCartStore.getState().cart;
+  useCartStore.getState().savePendingDraft(DESIGN_SALE);
+  useCartStore.getState().setQty(cart.lines[0]!.id, 3);
+  useCartStore.getState().addMisc("Sticker", 100);
+  useCartStore.getState().clear();
+  useCartStore.getState().hold("park", "shift");
+  expect(useCartStore.getState().cart).toEqual(cart);
+  expect(useCartStore.getState().heldCarts).toHaveLength(0);
+  useCartStore.getState().releasePending();
+  useCartStore.getState().clear();
+  expect(useCartStore.getState().cart.lines).toHaveLength(0);
 });

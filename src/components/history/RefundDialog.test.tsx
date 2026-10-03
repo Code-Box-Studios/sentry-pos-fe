@@ -112,6 +112,7 @@ test("the fourth failure locks the terminal and disables the button", async () =
   for (let i = 0; i < 5; i++) {
     await enterPin(user, "000000");
     await user.click(screen.getByRole("button", { name: "Refund ₱24.00" }));
+    if (i < 4) await screen.findByText(`Wrong PIN — ${3 - i} attempts left`);
   }
 
   expect(await screen.findByText(/^Locked — try again in \d+ min$/)).toBeInTheDocument();

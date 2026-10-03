@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { OpenShiftDayBoundary } from "@/components/shift/OpenShiftDayBoundary";
 import { TopBar } from "@/components/chrome/TopBar";
 import { CartPane } from "@/components/sale/CartPane";
 import { ALL_CATEGORIES, CategoryTabs } from "@/components/sale/CategoryTabs";
@@ -31,6 +32,7 @@ export default function SalePage() {
   const [categoryId, setCategoryId] = useState(ALL_CATEGORIES);
   const [search, setSearch] = useState("");
   const [sheetProduct, setSheetProduct] = useState<Product | null>(null);
+  const [sheetVariantId, setSheetVariantId] = useState<string | null>(null);
   const [miscOpen, setMiscOpen] = useState(false);
   const [discountTarget, setDiscountTarget] = useState<DiscountTarget | null>(null);
   const [scPwdOpen, setScPwdOpen] = useState(false);
@@ -51,8 +53,9 @@ export default function SalePage() {
     }
   }
 
-  function selectProduct(product: Product) {
-    if (product.variants.length > 0 || product.modifierGroupIds.length > 0) {
+  function selectProduct(product: Product, variantId: string | null = null) {
+    if ((product.variants.length > 0 && !variantId) || product.modifierGroupIds.length > 0 || (variantId && product.soldBy === "weight")) {
+      setSheetVariantId(variantId);
       setSheetProduct(product);
       return;
     }
@@ -60,20 +63,19 @@ export default function SalePage() {
       setWeightFor({ product, lineId: null });
       return;
     }
-    withStockToast(product.name, () => addProduct(product));
+    withStockToast(product.name, () => addProduct(product, { variantId: variantId ?? undefined }));
   }
 
-  // An exact barcode match adds instantly; scanning again just stacks the same line.
+  // Plain barcode matches stack immediately; configured or weighed items finish their picker first.
   function handleScan(code: string) {
     for (const product of catalog?.products ?? []) {
       const variant = product.variants.find((v) => v.barcode === code);
       if (variant) {
-        withStockToast(product.name, () => addProduct(product, { variantId: variant.id }));
+        selectProduct(product, variant.id);
         return;
       }
       if (product.barcode === code) {
-        if (product.soldBy === "weight") setWeightFor({ product, lineId: null });
-        else withStockToast(product.name, () => addProduct(product));
+        selectProduct(product);
         return;
       }
     }
@@ -121,6 +123,7 @@ export default function SalePage() {
   return (
     <main className="flex h-dvh flex-col bg-surface">
       <TopBar active="sale" />
+      <OpenShiftDayBoundary />
       <div className="flex min-h-0 flex-1">
         <section className="flex min-w-0 flex-1 flex-col gap-4 p-5">
           <SearchBar
@@ -173,7 +176,7 @@ export default function SalePage() {
         </>
       )}
 
-      <VariantModifierSheet product={sheetProduct} onClose={() => setSheetProduct(null)} />
+      <VariantModifierSheet product={sheetProduct} initialVariantId={sheetVariantId} onClose={() => setSheetProduct(null)} />
       <MiscItemModal open={miscOpen} onClose={() => setMiscOpen(false)} />
       <ScPwdModal open={scPwdOpen} onClose={() => setScPwdOpen(false)} />
       <HoldDialog open={holdOpen} onClose={() => setHoldOpen(false)} />

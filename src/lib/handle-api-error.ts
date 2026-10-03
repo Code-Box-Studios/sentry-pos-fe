@@ -1,8 +1,9 @@
 import { toast } from "sonner";
-import { NetworkError, UnauthorizedError } from "@/api/errors";
+import { NetworkError, OperatorSessionError, UnauthorizedError } from "@/api/errors";
 import { useCartStore } from "@/state/cart";
 import { usePairingStore } from "@/state/pairing";
 import { useShiftStore } from "@/state/shift";
+import { useOperatorStore } from "@/state/operator";
 
 /**
  * The one full-reset choke point. Used by unpair and by the remote-unpair 401 so a device can never
@@ -12,6 +13,7 @@ export function resetTerminalState(): void {
   usePairingStore.getState().unpair();
   useCartStore.getState().resetAll();
   useShiftStore.getState().reset();
+  useOperatorStore.getState().lock();
 }
 
 interface RouterLike {
@@ -23,6 +25,11 @@ interface RouterLike {
  * and a dead network says so. Anything else is a real bug and rethrows.
  */
 export function handleApiError(e: unknown, router?: RouterLike): void {
+  if (e instanceof OperatorSessionError) {
+    useOperatorStore.getState().lock();
+    router?.replace("/unlock");
+    return;
+  }
   if (e instanceof UnauthorizedError) {
     resetTerminalState();
     router?.replace("/pair");

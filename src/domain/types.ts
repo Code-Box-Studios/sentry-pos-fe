@@ -12,8 +12,10 @@ export interface BusinessSettings {
   taxRate: number;            // 0.12
   serviceChargeRate: number;  // 0.05; 0 disables
   allowMiscItems: boolean;
+  blindCloseEnabled?: boolean;
   isDemo: boolean;
   dayStartTime: string;       // "HH:mm", e.g. "04:00"
+  logoUrl?: string | null;   // hosted business logo; omitted when unset
   receiptHeader: string;      // freeform, holds TIN + address lines
   receiptFooter: string;
 }

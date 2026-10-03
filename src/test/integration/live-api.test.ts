@@ -187,6 +187,7 @@ live("live API golden path", () => {
   it("closes the shift with a consistent Z report", async () => {
     await api.addCashMovement({ type: "in", amountC: 10000, reason: "float top-up" });
     const totals = await api.getShiftTotals();
+    if (totals.blindCloseEnabled) throw new Error("This fixture expects a non-blind drawer");
     expect(totals.cashInC).toBe(10000);
     expect(totals.voidCount).toBe(1);
     expect(totals.refundCount).toBe(1);

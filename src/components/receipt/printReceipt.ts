@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { createElement } from "react";
+import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import type { PaperWidth } from "@/state/settings";
 import { PrintRoot } from "./PrintRoot";
@@ -15,7 +16,7 @@ export function printNode(children: ReactNode, paperWidth: PaperWidth): void {
   if (!host) return;
 
   const root = createRoot(host);
-  root.render(createElement(PrintRoot, { paperWidth }, children));
+  flushSync(() => root.render(createElement(PrintRoot, { paperWidth }, children)));
 
   const cleanup = () => {
     window.removeEventListener("afterprint", cleanup);
@@ -24,6 +25,19 @@ export function printNode(children: ReactNode, paperWidth: PaperWidth): void {
   };
   window.addEventListener("afterprint", cleanup);
 
-  // Give React a frame to commit before the dialog snapshots the page.
-  setTimeout(() => window.print(), 0);
+  // Wait for hosted branding before the print dialog snapshots the page. A failed or slow
+  // image must not prevent the cashier from printing the rest of the receipt.
+  const images = Array.from(host.querySelectorAll("img"));
+  void Promise.all(images.map((img) => new Promise<void>((resolve) => {
+    if (img.complete) { resolve(); return; }
+    const finish = () => {
+      clearTimeout(timeout);
+      img.removeEventListener("load", finish);
+      img.removeEventListener("error", finish);
+      resolve();
+    };
+    const timeout = setTimeout(finish, 5000);
+    img.addEventListener("load", finish);
+    img.addEventListener("error", finish);
+  }))).then(() => window.print());
 }

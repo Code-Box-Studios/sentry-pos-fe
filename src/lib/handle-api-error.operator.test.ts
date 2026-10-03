@@ -1,0 +1,20 @@
+import { handleApiError } from "./handle-api-error";
+import { OperatorSessionError } from "@/api/errors";
+import { useOperatorStore } from "@/state/operator";
+import { usePairingStore } from "@/state/pairing";
+import { useCartStore } from "@/state/cart";
+import { useShiftStore } from "@/state/shift";
+import { DESIGN_SALE } from "@/components/receipt/fixtures";
+test("a revoked human session locks without destroying device, drawer, or unresolved receipt", () => {
+  usePairingStore.setState({ status: "paired", hydrated: true, deviceToken: "device" });
+  useOperatorStore.getState().unlock({ token: "human", operator: { userId: "cashier", name: "Ana", role: "cashier" }, expiresAt: new Date(Date.now() + 3600000).toISOString() });
+  useCartStore.getState().savePendingDraft(DESIGN_SALE);
+  useShiftStore.setState({ shift: { id: "drawer", openedAt: "", closedAt: null, openingCashC: 0, cashMovements: [] }, hydrated: true });
+  const replace = vi.fn();
+  handleApiError(new OperatorSessionError(), { replace });
+  expect(replace).toHaveBeenCalledWith("/unlock");
+  expect(useOperatorStore.getState().token).toBeNull();
+  expect(usePairingStore.getState().deviceToken).toBe("device");
+  expect(useCartStore.getState().pendingDraft?.id).toBe(DESIGN_SALE.id);
+  expect(useShiftStore.getState().shift?.id).toBe("drawer");
+});
